@@ -4,15 +4,36 @@ Thank you for your interest in contributing to StreamdownRN! This document provi
 
 ## Development Setup
 
-1. Clone the repository:
+### For External Contributors
+
+1. **Fork the repository** on GitHub:
+   - Click the "Fork" button at https://github.com/darkresearch/streamdown-rn
+   - This creates a copy under your GitHub account
+
+2. **Clone your fork**:
 ```bash
-git clone https://github.com/darkresearch/streamdown-rn.git
+git clone https://github.com/YOUR-USERNAME/streamdown-rn.git
 cd streamdown-rn
 ```
 
-2. Install dependencies:
+3. **Add upstream remote** (to sync with the main repo):
 ```bash
-npm install
+git remote add upstream https://github.com/darkresearch/streamdown-rn.git
+```
+
+4. **Install dependencies**:
+```bash
+bun install
+```
+
+### For Maintainers
+
+If you have write access to the repository, you can clone directly:
+
+```bash
+git clone https://github.com/darkresearch/streamdown-rn.git
+cd streamdown-rn
+bun install
 ```
 
 3. Run type checking:

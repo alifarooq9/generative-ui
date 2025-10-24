@@ -39,11 +39,10 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: bun run release
-          version: bun run version
+          publish: npm run release
+          version: npm run version
           commit: 'chore: version packages'
           title: 'chore: version packages'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,20 +1,38 @@
 # StreamdownRN
 
-A React Native streaming markdown renderer inspired by [Vercel's Streamdown](https://github.com/vercel/streamdown), designed specifically for AI chat applications with dynamic component injection.
+A React Native streaming markdown renderer based on [Vercel's Streamdown](https://github.com/vercel/streamdown), with powerful enhancements for AI chat applications including **dynamic component injection** and **mobile-first optimizations**.
+
+## What Makes StreamdownRN Different?
+
+StreamdownRN brings Vercel's streaming markdown philosophy to React Native, plus some powerful innovations:
+
+**🎯 Dynamic Component Registry** - Our killer feature that Streamdown doesn't have:
+- LLMs can inject interactive components directly into markdown
+- Runtime component validation with JSON schemas
+- Turn chat into a programmable UI platform
+- Example: AI renders a `TokenCard` component right in the response
+
+**📱 Mobile-First** - Built specifically for React Native:
+- StyleSheet-based theming (not CSS)
+- Optimized for touch interfaces
+- Cross-platform (iOS, Android, Web)
+
+**🚀 Streaming-First** - Just like Vercel's Streamdown:
+- Handles incomplete markdown gracefully
+- Smooth real-time rendering during AI responses
+- Optimized for rapid text updates
 
 ## Features
 
+🔌 **Component registry** - Dynamic component injection via pluggable registry system (unique to StreamdownRN!)  
 🚀 **Streaming-first** - Handles incomplete markdown gracefully during AI response streaming  
-🔌 **Component registry** - Dynamic component injection via pluggable registry system  
 📱 **Mobile-optimized** - Built specifically for React Native performance  
-🎨 **Themeable** - Built-in dark/light theme support  
+🎨 **Themeable** - Built-in dark/light theme support with StyleSheet  
 🎯 **Syntax highlighting** - Beautiful code blocks with copy-to-clipboard  
 
 ## Why StreamdownRN?
 
-Traditional markdown renderers break when you stream incomplete content from AI models. StreamdownRN is built specifically for this use case, handling partial formatting gracefully and providing smooth real-time rendering.
-
-Inspired by [Vercel's Streamdown](https://github.com/vercel/streamdown) for React web, StreamdownRN brings the same streaming-first philosophy to React Native with mobile-optimized performance.
+Traditional markdown renderers break when you stream incomplete content from AI models. Vercel's Streamdown solved this for React web. StreamdownRN brings the same elegance to React Native, with additional innovations for AI-powered chat interfaces.
 
 ## Installation
 
@@ -62,9 +80,9 @@ const AssistantMessage = ({ content, componentRegistry }) => (
 );
 ```
 
-### Component Injection
+### Component Injection (StreamdownRN Innovation 🎯)
 
-StreamdownRN supports dynamic component injection using JSON syntax:
+This is StreamdownRN's killer feature - something Vercel's Streamdown doesn't have. Your AI can inject interactive React Native components directly into markdown responses:
 
 ```markdown
 Here's some **bold text** and a dynamic component:
@@ -77,6 +95,8 @@ Here's some **bold text** and a dynamic component:
 
 More markdown content continues...
 ```
+
+This turns your chat interface into a **programmable UI platform** where the LLM composes complex, interactive interfaces on the fly.
 
 ## API Reference
 

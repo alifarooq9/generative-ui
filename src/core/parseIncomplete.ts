@@ -142,7 +142,8 @@ function hideIncompleteComponents(text: string): { cleanText: string; bufferedCo
       braceCount--;
       
       // Check if this is the closing }} (two consecutive })
-      if (braceCount === 0 && nextChar === '}') {
+      // When braceCount hits 1, we're at the first } of the final }}
+      if (braceCount === 1 && nextChar === '}') {
         foundClosing = true;
         break;
       }

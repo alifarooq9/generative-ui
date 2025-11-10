@@ -91,7 +91,19 @@ export function extractComponents(
       continue;
     }
 
-    const fullMatch = markdown.substring(match.index, afterPropsIndex + 2);
+    // Check for extra closing braces (common AI error: }}} instead of }}})
+    let endIndex = afterPropsIndex + 2;
+    let extraBraces = 0;
+    while (markdown[endIndex] === '}') {
+      extraBraces++;
+      endIndex++;
+    }
+    
+    if (extraBraces > 0) {
+      console.warn(`Component '${componentName}' has ${extraBraces} extra closing brace(s). Including in match to prevent rendering issues.`);
+    }
+
+    const fullMatch = markdown.substring(match.index, endIndex);
     const propsJson = jsonResult.json;
     
     try {

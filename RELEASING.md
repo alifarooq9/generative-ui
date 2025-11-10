@@ -1,6 +1,6 @@
-# Release Process with Changesets
+# Release process with Changesets
 
-StreamdownRN uses [Changesets](https://github.com/changesets/changesets) for version management and publishing - the same system Vercel uses for Streamdown.
+streamdown-rn uses [Changesets](https://github.com/changesets/changesets) for version management and publishing - the same system Vercel uses for Streamdown.
 
 ## How It Works
 
@@ -48,9 +48,9 @@ git commit -m "Add markdown table support"
 git push origin feature/add-tables
 ```
 
-## For Maintainers
+## For maintainers
 
-### The Automated Flow
+### The automated flow
 
 1. **PRs get merged** with changesets
 2. **GitHub Actions** automatically creates/updates a "Version Packages" PR
@@ -79,54 +79,6 @@ bun run version
 bun run release
 ```
 
-## Setting Up npm Token
-
-For automated publishing, you need to add an npm token to GitHub Secrets:
-
-1. **Generate npm token**:
-   - Go to https://www.npmjs.com/settings/edgardark/tokens
-   - Create new token → "Automation" type
-   - Copy the token
-
-2. **Add to GitHub Secrets**:
-   - Go to https://github.com/darkresearch/streamdown-rn/settings/secrets/actions
-   - New repository secret
-   - Name: `NPM_TOKEN`
-   - Value: Paste your npm token
-
-Alternatively, set up **Trusted Publishing with OIDC** (more secure, no token needed):
-- Go to https://www.npmjs.com/package/streamdown-rn/access
-- Configure Trusted Publisher with GitHub Actions
-
-## Example Changesets
-
-### Patch (Bug Fix)
-```markdown
----
-"streamdown-rn": patch
----
-
-Fix code block rendering on Android devices
-```
-
-### Minor (New Feature)
-```markdown
----
-"streamdown-rn": minor
----
-
-Add support for custom theme configuration
-```
-
-### Major (Breaking Change)
-```markdown
----
-"streamdown-rn": major
----
-
-BREAKING: Remove deprecated `parseOptions` prop. Use `theme` prop instead.
-```
-
 ## Benefits
 
 ✅ **Automated versioning** - No manual version bumps  
@@ -134,20 +86,3 @@ BREAKING: Remove deprecated `parseOptions` prop. Use `theme` prop instead.
 ✅ **Aggregated releases** - Multiple PRs = one version bump  
 ✅ **Clear change tracking** - Know exactly what's in each version  
 ✅ **Same as Vercel** - Industry-standard workflow
-
-## First Release with Changesets
-
-Since we already published 0.1.0, the first changeset will create 0.1.1 (or 0.2.0 depending on the change type).
-
-Try it out:
-```bash
-bun run changeset
-# Select patch/minor/major
-# Describe your change
-git add .changeset/*
-git commit -m "Add changeset"
-git push
-```
-
-GitHub Actions will automatically create a "Version Packages" PR!
-

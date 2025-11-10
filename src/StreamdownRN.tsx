@@ -96,7 +96,7 @@ export const StreamdownRN: React.FC<StreamdownRNProps> = React.memo(({
   }, [children, componentRegistry, onComponentError]);
 
   // Get theme configuration with style overrides
-  const { markdownStyles } = useMemo(() => {
+  const { config: themeConfig, markdownStyles } = useMemo(() => {
     return getTheme(theme, styleOverrides);
   }, [theme, styleOverrides]);
 
@@ -119,12 +119,12 @@ export const StreamdownRN: React.FC<StreamdownRNProps> = React.memo(({
       
       // Render error fallback inline
       return (
-        <Text key={id} style={{ color: '#ff3333', fontSize: 14 }}>
+        <Text key={id} style={{ color: themeConfig.colors.link, fontSize: 14 }}>
           ⚠️ Error: {name}
         </Text>
       );
     }
-  }, [onComponentError]);
+  }, [onComponentError, themeConfig]);
 
   // Custom markdown rules for component injection and code blocks
   const customRules = useMemo(() => {
@@ -264,14 +264,13 @@ export const StreamdownRN: React.FC<StreamdownRNProps> = React.memo(({
     rules.fence = (node: any, _children: any, _parent: any, _styles: any) => {
       const language = node.sourceInfo || '';
       const code = node.content || '';
-      const currentTheme = typeof theme === 'string' ? theme : 'dark';
       
       return (
         <CodeBlock
           key={node.key}
           code={code}
           language={language}
-          theme={currentTheme}
+          theme={themeConfig}
         />
       );
     };
@@ -288,7 +287,7 @@ export const StreamdownRN: React.FC<StreamdownRNProps> = React.memo(({
     };
 
     return rules;
-  }, [processedContent.components, renderComponent, theme]);
+  }, [processedContent.components, renderComponent, themeConfig]);
 
   // Prepare markdown with component placeholders
   const markdownWithPlaceholders = useMemo(() => {

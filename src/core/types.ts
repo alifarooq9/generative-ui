@@ -55,11 +55,27 @@ export interface ThemeConfig {
     blockquote: string;
     strong: string;
     emphasis: string;
+    // Syntax highlighting colors
+    syntaxKeyword: string;
+    syntaxString: string;
+    syntaxNumber: string;
+    syntaxComment: string;
+    syntaxFunction: string;
+    syntaxClass: string;
+    syntaxOperator: string;
+    syntaxDefault: string;
+    // Code block UI colors
+    codeBlockBackground?: string;
+    codeBlockBorder?: string;
+    codeBlockHeaderBg?: string;
+    codeBlockHeaderText?: string;
+    codeBlockCopyButtonBg?: string;
+    codeBlockCopyButtonText?: string;
   };
   fonts: {
-    body: string;
-    code: string;
-    heading: string;
+    body?: string;
+    code?: string;
+    heading?: string;
   };
   spacing: {
     paragraph: number;

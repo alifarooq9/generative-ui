@@ -3,22 +3,21 @@ const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
-// Resolve streamdown-rn to ../src directory
+// Monorepo root directory
 const projectRoot = __dirname;
-const sourceRoot = path.resolve(projectRoot, '../src');
-const parentNodeModules = path.resolve(projectRoot, '../node_modules');
+const workspaceRoot = path.resolve(projectRoot, '../');
 
-// Add streamdown-rn to extraNodeModules so Metro can resolve it
-config.resolver.extraNodeModules = {
-  ...config.resolver.extraNodeModules,
-  'streamdown-rn': sourceRoot,
-};
+// Watch the workspace root so changes in packages are detected
+config.watchFolders = [workspaceRoot];
 
-// Also resolve from parent node_modules for shared dependencies
+// Resolve packages from workspace root node_modules as well
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
-  parentNodeModules,
+  path.resolve(workspaceRoot, 'node_modules'),
 ];
+
+// Force resolution of shared dependencies to the root node_modules to avoid duplicates
+config.resolver.disableHierarchicalLookup = true;
 
 // Add woff2 to asset extensions for font loading
 config.resolver.assetExts = [
@@ -26,10 +25,4 @@ config.resolver.assetExts = [
   'woff2',
 ];
 
-// Ensure source files are watched for hot reloading
-config.watchFolders = [
-  sourceRoot,
-];
-
 module.exports = config;
-

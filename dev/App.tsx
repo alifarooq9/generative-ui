@@ -12,11 +12,12 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Asset } from 'expo-asset';
 import { StreamdownRN } from 'streamdown-rn';
+import { Canvas, CanvasComponent } from 'galerie-rn';
 import { createTestComponentRegistry, componentSourceCode } from './components/TestComponents';
 import { Header } from './components/Header';
 import { StateDebugPanel } from './components/StateDebugPanel';
 import { ComponentLibrary } from './components/ComponentLibrary';
-import type { IncompleteTagState, ComponentExtractionState } from '../src/core/types';
+import type { IncompleteTagState, ComponentExtractionState } from 'streamdown-rn';
 
 // Light mode colorway matching Dark website
 const COLORS = {
@@ -130,6 +131,7 @@ export default function App() {
   const [showComponentLibrary, setShowComponentLibrary] = useState(false);
   const [debugState, setDebugState] = useState<IncompleteTagState | null>(null);
   const [componentExtractionState, setComponentExtractionState] = useState<ComponentExtractionState | null>(null);
+  const [activeTab, setActiveTab] = useState<'streamdown' | 'galerie'>('streamdown');
   const streamingRef = useRef<NodeJS.Timeout | null>(null);
   const currentIndexRef = useRef<number>(0);
   const componentRegistry = createTestComponentRegistry();
@@ -361,31 +363,49 @@ export default function App() {
         <View style={styles.controlsGrid}>
           {/* Left Group */}
           <View style={styles.leftGroup}>
-            {/* Preset selector */}
+            {/* Tab selector */}
             <View style={styles.controlRow}>
-              <Text style={[styles.controlLabel, { fontFamily }]}>Preset:</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.presetContainer}>
-                {Object.keys(PRESETS).map((preset) => (
-                  <TouchableOpacity
-                    key={preset}
-                    style={[
-                      styles.themeButton,
-                      selectedPreset === preset && styles.themeButtonActive,
-                    ]}
-                    onPress={() => handlePresetChange(preset)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[
-                      styles.themeButtonText,
-                      { fontFamily },
-                      selectedPreset === preset && styles.themeButtonTextActive,
-                    ]}>
-                      {preset}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+              <TouchableOpacity 
+                onPress={() => setActiveTab('streamdown')}
+                style={[styles.tabButton, activeTab === 'streamdown' && styles.tabButtonActive]}
+              >
+                <Text style={[styles.tabButtonText, activeTab === 'streamdown' && styles.tabButtonTextActive]}>Streamdown</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={() => setActiveTab('galerie')}
+                style={[styles.tabButton, activeTab === 'galerie' && styles.tabButtonActive]}
+              >
+                <Text style={[styles.tabButtonText, activeTab === 'galerie' && styles.tabButtonTextActive]}>Galerie</Text>
+              </TouchableOpacity>
             </View>
+
+            {/* Preset selector */}
+            {activeTab === 'streamdown' && (
+              <View style={styles.controlRow}>
+                <Text style={[styles.controlLabel, { fontFamily }]}>Preset:</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.presetContainer}>
+                  {Object.keys(PRESETS).map((preset) => (
+                    <TouchableOpacity
+                      key={preset}
+                      style={[
+                        styles.themeButton,
+                        selectedPreset === preset && styles.themeButtonActive,
+                      ]}
+                      onPress={() => handlePresetChange(preset)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[
+                        styles.themeButtonText,
+                        { fontFamily },
+                        selectedPreset === preset && styles.themeButtonTextActive,
+                      ]}>
+                        {preset}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
 
             {/* Theme toggle */}
             <View style={styles.controlRow}>
@@ -414,150 +434,174 @@ export default function App() {
           </View>
 
           {/* Right Group */}
-          <View style={styles.rightGroup}>
-            {/* Speed control */}
-            <View style={[styles.controlRow, styles.rightControlRow]}>
-              <View style={styles.speedControl}>
-                <Text style={[styles.controlLabel, { fontFamily }]}>Delay:</Text>
-                <TextInput
-                  style={[styles.speedInput, { fontFamily }]}
-                  value={speedInputValue}
-                  onChangeText={(text) => {
-                    // Allow empty string for editing
-                    setSpeedInputValue(text);
-                    const num = parseInt(text, 10);
-                    if (!isNaN(num) && num > 0) {
-                      setStreamSpeed(num);
-                    }
-                  }}
-                  onBlur={() => {
-                    // Validate on blur - if empty or invalid, reset to current speed
-                    const num = parseInt(speedInputValue, 10);
-                    if (isNaN(num) || num <= 0) {
-                      setSpeedInputValue(streamSpeed.toString());
-                    }
-                  }}
-                  keyboardType="numeric"
-                  placeholder="50"
-                  placeholderTextColor={COLORS.accentLight}
-                />
-                <Text style={[styles.controlLabel, { fontFamily }]}>ms/char</Text>
+          {activeTab === 'streamdown' && (
+            <View style={styles.rightGroup}>
+              {/* Speed control */}
+              <View style={[styles.controlRow, styles.rightControlRow]}>
+                <View style={styles.speedControl}>
+                  <Text style={[styles.controlLabel, { fontFamily }]}>Delay:</Text>
+                  <TextInput
+                    style={[styles.speedInput, { fontFamily }]}
+                    value={speedInputValue}
+                    onChangeText={(text) => {
+                      // Allow empty string for editing
+                      setSpeedInputValue(text);
+                      const num = parseInt(text, 10);
+                      if (!isNaN(num) && num > 0) {
+                        setStreamSpeed(num);
+                      }
+                    }}
+                    onBlur={() => {
+                      // Validate on blur - if empty or invalid, reset to current speed
+                      const num = parseInt(speedInputValue, 10);
+                      if (isNaN(num) || num <= 0) {
+                        setSpeedInputValue(streamSpeed.toString());
+                      }
+                    }}
+                    keyboardType="numeric"
+                    placeholder="50"
+                    placeholderTextColor={COLORS.accentLight}
+                  />
+                  <Text style={[styles.controlLabel, { fontFamily }]}>ms/char</Text>
+                </View>
               </View>
-            </View>
 
 
-            {/* Start, Reset, Debug buttons */}
-            <View style={[styles.controlRow, styles.rightControlRow]}>
-              <View style={styles.streamControls}>
-                {!isStreaming ? (
-                  <TouchableOpacity
-                    style={[styles.button, styles.buttonPill]}
-                    onPress={startStreaming}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.buttonText, { fontFamily }]}>Start</Text>
-                  </TouchableOpacity>
-                ) : isPaused ? (
-                  <>
-                    <TouchableOpacity
-                      style={[styles.button, styles.buttonIcon]}
-                      onPress={stepBackward}
-                      activeOpacity={0.7}
-                      disabled={streamingMarkdown.length === 0}
-                    >
-                      <Text style={[styles.buttonText, { fontFamily, opacity: streamingMarkdown.length === 0 ? 0.3 : 1 }]}>←</Text>
-                    </TouchableOpacity>
+              {/* Start, Reset, Debug buttons */}
+              <View style={[styles.controlRow, styles.rightControlRow]}>
+                <View style={styles.streamControls}>
+                  {!isStreaming ? (
                     <TouchableOpacity
                       style={[styles.button, styles.buttonPill]}
-                      onPress={resumeStreaming}
+                      onPress={startStreaming}
                       activeOpacity={0.7}
                     >
-                      <Text style={[styles.buttonText, { fontFamily }]}>Resume</Text>
+                      <Text style={[styles.buttonText, { fontFamily }]}>Start</Text>
                     </TouchableOpacity>
+                  ) : isPaused ? (
+                    <>
+                      <TouchableOpacity
+                        style={[styles.button, styles.buttonIcon]}
+                        onPress={stepBackward}
+                        activeOpacity={0.7}
+                        disabled={streamingMarkdown.length === 0}
+                      >
+                        <Text style={[styles.buttonText, { fontFamily, opacity: streamingMarkdown.length === 0 ? 0.3 : 1 }]}>←</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.button, styles.buttonPill]}
+                        onPress={resumeStreaming}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.buttonText, { fontFamily }]}>Resume</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.button, styles.buttonIcon]}
+                        onPress={stepForward}
+                        activeOpacity={0.7}
+                        disabled={streamingMarkdown.length >= markdown.length}
+                      >
+                        <Text style={[styles.buttonText, { fontFamily, opacity: streamingMarkdown.length >= markdown.length ? 0.3 : 1 }]}>→</Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : (
                     <TouchableOpacity
-                      style={[styles.button, styles.buttonIcon]}
-                      onPress={stepForward}
+                      style={[styles.button, styles.buttonPill]}
+                      onPress={pauseStreaming}
                       activeOpacity={0.7}
-                      disabled={streamingMarkdown.length >= markdown.length}
                     >
-                      <Text style={[styles.buttonText, { fontFamily, opacity: streamingMarkdown.length >= markdown.length ? 0.3 : 1 }]}>→</Text>
+                      <Text style={[styles.buttonText, { fontFamily }]}>Pause</Text>
                     </TouchableOpacity>
-                  </>
-                ) : (
+                  )}
                   <TouchableOpacity
                     style={[styles.button, styles.buttonPill]}
-                    onPress={pauseStreaming}
+                    onPress={reset}
                     activeOpacity={0.7}
                   >
-                    <Text style={[styles.buttonText, { fontFamily }]}>Pause</Text>
+                    <Text style={[styles.buttonText, { fontFamily }]}>Reset</Text>
                   </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonPill]}
-                  onPress={reset}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.buttonText, { fontFamily }]}>Reset</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonPill, showDebugPanel && styles.buttonActive]}
-                  onPress={() => setShowDebugPanel(!showDebugPanel)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.buttonText, { fontFamily }]}>Debug</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonPill, showComponentLibrary && styles.buttonActive]}
-                  onPress={() => setShowComponentLibrary(!showComponentLibrary)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.buttonText, { fontFamily }]}>Components</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.button, styles.buttonPill, showDebugPanel && styles.buttonActive]}
+                    onPress={() => setShowDebugPanel(!showDebugPanel)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.buttonText, { fontFamily }]}>Debug</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.button, styles.buttonPill, showComponentLibrary && styles.buttonActive]}
+                    onPress={() => setShowComponentLibrary(!showComponentLibrary)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.buttonText, { fontFamily }]}>Components</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
+          )}
         </View>
       </View>
 
       {/* Content area - split view */}
       <View style={styles.contentArea}>
-        {/* Input area */}
-        <View style={styles.inputArea}>
-          <Text style={[styles.sectionTitle, { fontFamily }]}>Input</Text>
-          <TextInput
-            style={[styles.textInput, { fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }]}
-            multiline
-            value={markdown}
-            onChangeText={setMarkdown}
-            placeholder="Enter markdown here..."
-            placeholderTextColor={COLORS.accentLight}
-            editable={!isStreaming}
-          />
-        </View>
+        {activeTab === 'streamdown' ? (
+          <>
+            {/* Input area */}
+            <View style={styles.inputArea}>
+              <Text style={[styles.sectionTitle, { fontFamily }]}>Input</Text>
+              <TextInput
+                style={[styles.textInput, { fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }]}
+                multiline
+                value={markdown}
+                onChangeText={setMarkdown}
+                placeholder="Enter markdown here..."
+                placeholderTextColor={COLORS.accentLight}
+                editable={!isStreaming}
+              />
+            </View>
 
-        {/* Output area */}
-        <View style={styles.outputArea}>
-          <Text style={[styles.sectionTitle, { fontFamily }]}>Output</Text>
-          <View style={[styles.outputContainer, { backgroundColor: theme === 'light' ? '#fafafa' : '#2a2a2a' }]}>
-            <ScrollView style={styles.outputScroll} contentContainerStyle={styles.outputContent}>
-              <StreamdownRN
-                componentRegistry={componentRegistry}
-                theme={theme}
-                onComponentError={(error) => {
-                  console.warn('Component error:', error);
-                }}
-                onStateUpdate={(state) => {
-                  setDebugState(state);
-                }}
-                onComponentExtractionUpdate={(state) => {
-                  setComponentExtractionState(state);
-                }}
-              >
-                {streamingMarkdown}
-              </StreamdownRN>
-            </ScrollView>
+            {/* Output area */}
+            <View style={styles.outputArea}>
+              <Text style={[styles.sectionTitle, { fontFamily }]}>Output</Text>
+              <View style={[styles.outputContainer, { backgroundColor: theme === 'light' ? '#fafafa' : '#2a2a2a' }]}>
+                <ScrollView style={styles.outputScroll} contentContainerStyle={styles.outputContent}>
+                  <StreamdownRN
+                    componentRegistry={componentRegistry}
+                    theme={theme}
+                    onComponentError={(error) => {
+                      console.warn('Component error:', error);
+                    }}
+                    onStateUpdate={(state) => {
+                      setDebugState(state);
+                    }}
+                    onComponentExtractionUpdate={(state) => {
+                      setComponentExtractionState(state);
+                    }}
+                  >
+                    {streamingMarkdown}
+                  </StreamdownRN>
+                </ScrollView>
+              </View>
+            </View>
+          </>
+        ) : (
+          <View style={styles.outputArea}>
+            <Text style={[styles.sectionTitle, { fontFamily }]}>Galerie Canvas Demo</Text>
+            <View style={[styles.outputContainer, { backgroundColor: theme === 'light' ? '#fafafa' : '#2a2a2a' }]}>
+              <Canvas width={1000} height={1000}>
+                <CanvasComponent x={50} y={50} width={200} height={100}>
+                  <View style={{ backgroundColor: 'lightblue', flex: 1, padding: 10, borderRadius: 8 }}>
+                    <Text>Canvas Item 1</Text>
+                  </View>
+                </CanvasComponent>
+                <CanvasComponent x={300} y={150} width={150} height={150}>
+                  <View style={{ backgroundColor: 'lightgreen', flex: 1, padding: 10, borderRadius: 8 }}>
+                    <Text>Canvas Item 2</Text>
+                  </View>
+                </CanvasComponent>
+              </Canvas>
+            </View>
           </View>
-        </View>
+        )}
       </View>
 
       {/* Debug Panel */}
@@ -808,5 +852,22 @@ const styles = StyleSheet.create({
   },
   outputContent: {
     padding: 8,
+  },
+  tabButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabButtonActive: {
+    borderBottomColor: COLORS.textPrimary,
+  },
+  tabButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+  },
+  tabButtonTextActive: {
+    color: COLORS.textPrimary,
   },
 });

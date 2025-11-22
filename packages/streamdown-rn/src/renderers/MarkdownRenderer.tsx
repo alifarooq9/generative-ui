@@ -7,6 +7,9 @@
 import React from 'react';
 import Markdown from 'react-native-markdown-display';
 
+// Fix for TS2786: 'Markdown' cannot be used as a JSX component.
+const MarkdownComponent = Markdown as any;
+
 interface MarkdownRendererProps {
   children: string;
   theme?: 'dark' | 'light';
@@ -20,12 +23,12 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   rules = {},
 }) => {
   return (
-    <Markdown
+    <MarkdownComponent
       style={style}
       rules={rules}
     >
       {children}
-    </Markdown>
+    </MarkdownComponent>
   );
 };
 

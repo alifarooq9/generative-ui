@@ -4,7 +4,7 @@
     "strict": true,
     "paths": {
       "streamdown-rn": [
-        "../src"
+        "../packages/streamdown-rn/src"
       ]
     }
   },

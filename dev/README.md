@@ -26,7 +26,7 @@ A minimal Expo-based admin dashboard for visually testing and developing streamd
 
 ## Features
 
-- **Direct source imports**: Imports `streamdown-rn` directly from `../src` via module resolution (no dependency needed)
+- **Direct source imports**: Imports `streamdown-rn` directly from `../packages/streamdown-rn/src` via module resolution (no dependency needed)
 - **Streaming simulation**: Typewriter effect to test streaming behavior with adjustable speed
 - **Step-by-step debugging**: Pause and use ← → arrows to navigate character-by-character
 - **State debug panel**: Real-time visualization of markdown tag state and component extraction
@@ -41,12 +41,12 @@ A minimal Expo-based admin dashboard for visually testing and developing streamd
 
 The dev app uses module resolution to import `streamdown-rn` directly from source:
 
-- **TypeScript**: Path alias in `tsconfig.json` maps `streamdown-rn` to `../src`
-- **Metro**: `metro.config.js` uses `extraNodeModules` to resolve `streamdown-rn` to `../src`
+- **TypeScript**: Path alias in `tsconfig.json` maps `streamdown-rn` to `../packages/streamdown-rn/src`
+- **Metro**: `metro.config.js` uses `extraNodeModules` to resolve `streamdown-rn` to `../packages/streamdown-rn/src`
 
 This means:
 - No build step needed for testing
-- Changes to `../src` files reflect immediately
+- Changes to `../packages/streamdown-rn/src` files reflect immediately
 - No recursive install issues (streamdown-rn is not a dependency)
 
 ## Usage

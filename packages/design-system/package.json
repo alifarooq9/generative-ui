@@ -1,0 +1,27 @@
+{
+  "name": "@darkresearch/design-system",
+  "version": "0.1.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "storybook": "storybook dev",
+    "find-icon": "node scripts/find-icon.js"
+  },
+  "dependencies": {
+    "lucide-react-native": "^0.468.0",
+    "react-native-svg": "^15.12.1",
+    "nativewind": "^4.0.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.0.0",
+    "typescript": "~5.3.3"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*"
+  }
+}
+

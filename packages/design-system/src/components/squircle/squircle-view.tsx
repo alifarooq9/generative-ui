@@ -95,7 +95,7 @@ export function Squircle({
         />
       </Svg>
       <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-        {children}
+      {children}
       </View>
     </View>
   );

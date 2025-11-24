@@ -6,18 +6,22 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/app-icon.png",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.darkresearch.starter"
+      "bundleIdentifier": "com.darkresearch.starter",
+      "icon": "./assets/app-icon.png"
     },
     "android": {
-      "package": "com.darkresearch.starter"
+      "package": "com.darkresearch.starter",
+      "icon": "./assets/app-icon.png"
     },
     "web": {
       "bundler": "metro"
     },
     "plugins": [
-      "expo-asset"
+      "expo-asset",
+      "expo-font"
     ],
     "experiments": {
       "autolinkingModuleResolution": true

@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { FAB, Plus } from '@darkresearch/design-system';
+import { useAppFonts } from './useFonts';
 
 function AppContent() {
   const [count, setCount] = useState(0);
@@ -18,7 +19,7 @@ function AppContent() {
       <StatusBar style="dark" />
       
       <View style={styles.content}>
-        <Text style={styles.title}>start building</Text>
+        <Text style={styles.title}>app starter</Text>
         <Text style={styles.subtitle}>
           built with @darkresearch/generative-ui
         </Text>
@@ -41,6 +42,15 @@ function AppContent() {
 }
 
 export default function App() {
+  // Load fonts using platform-specific hook
+  // Web version loads woff2 fonts, native version loads OTF fonts
+  const [fontsLoaded] = useAppFonts();
+
+  // Wait for fonts to load on both platforms
+  if (!fontsLoaded) {
+    return null; // Loading screen
+  }
+
   return (
     <SafeAreaProvider>
       <AppContent />
@@ -62,17 +72,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#262626',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
+    fontFamily: 'Satoshi-Regular',
     color: 'rgba(38, 38, 38, 0.6)',
     marginBottom: 40,
   },
   count: {
     fontSize: 48,
     fontWeight: '700',
+    fontFamily: 'Satoshi-Bold',
     color: '#262626',
     marginBottom: 40,
   },

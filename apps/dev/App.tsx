@@ -1,8 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { colors } from '@darkresearch/design-system';
 import { useAppFonts } from './useFonts';
 import { ContentLayout } from './components/ContentLayout';
 import { DebugProvider } from './contexts/DebugContext';
@@ -13,6 +11,7 @@ import { BottomMenubar } from './components/BottomMenubar';
 import { PRESETS, PresetKey } from './constants/presets';
 import type { IncompleteTagState } from '../../packages/streamdown-rn/src/core/types';
 import type { ComponentExtractionState } from '@darkresearch/streamdown-rn';
+import { Platform } from 'react-native';
 
 const DEFAULT_MARKDOWN = PRESETS.Basic;
 
@@ -104,12 +103,17 @@ function AppContent() {
         paddingRight: insets.right,
       }}
     >
-      <StatusBar style="dark" />
       <View
         style={{
           flex: 1,
           paddingHorizontal: 24,
           paddingVertical: 16,
+          // Use Platform.select to apply marginBottom: 10 on mobile only
+          ...Platform.select({
+            ios: { marginBottom: 32 },
+            android: { marginBottom: 32 },
+            default: {},
+          }),
         }}
       >
         <ContentLayout

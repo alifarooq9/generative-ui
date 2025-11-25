@@ -36,16 +36,7 @@ export function RightSideFABs({
         },
       ]}
     >
-      <ControlsFAB
-        isStreaming={isStreaming}
-        isPaused={isPaused}
-        selectedPreset={selectedPreset}
-        streamSpeed={streamSpeed}
-        onPresetChange={onPresetChange}
-        onSpeedChange={onSpeedChange}
-        onStart={onStart}
-        onReset={onReset}
-      />
+      <ControlsFAB />
       <DebugFAB />
     </View>
   );

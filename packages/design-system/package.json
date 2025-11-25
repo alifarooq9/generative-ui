@@ -17,6 +17,7 @@
     "clsx": "^2.0.0",
     "lucide-react-native": "^0.468.0",
     "nativewind": "^4.0.0",
+    "react-native-fast-squircle": "^1.0.13",
     "react-native-svg": "^15.12.1",
     "tailwind-merge": "^2.0.0"
   },

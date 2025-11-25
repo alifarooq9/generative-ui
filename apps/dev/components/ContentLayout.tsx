@@ -27,19 +27,27 @@ export function ContentLayout({
   onStateUpdate,
   onComponentExtractionUpdate,
 }: ContentLayoutProps) {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/ba72c841-4600-456b-adad-25adf0868af7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ContentLayout.tsx:21',message:'ContentLayout render',data:{platform:Platform.OS,safeViewportHeight,markdownLength:markdown.length},timestamp:Date.now(),sessionId:'debug-session',runId:'web-debug',hypothesisId:'A'})}).catch(()=>{});
-  // #endregion
-  
   // Each section gets equal height with 24px gap between them
   const gapBetweenSections = 24;
   const sectionHeight = (safeViewportHeight - gapBetweenSections) / 2;
 
+  // Extract common props to avoid duplication
+  const inputAreaProps = {
+    markdown,
+    onMarkdownChange,
+    theme,
+  };
+
+  const outputAreaProps = {
+    markdown: streamingMarkdown ?? markdown,
+    componentRegistry,
+    theme,
+    onStateUpdate,
+    onComponentExtractionUpdate,
+  };
+
   // Web: side-by-side layout
   if (Platform.OS === 'web') {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/ba72c841-4600-456b-adad-25adf0868af7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ContentLayout.tsx:28',message:'Rendering web layout',data:{safeViewportHeight},timestamp:Date.now(),sessionId:'debug-session',runId:'web-debug',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     return (
       <View 
         style={{ 
@@ -54,11 +62,7 @@ export function ContentLayout({
             marginRight: 12,
           }}
         >
-          <InputArea
-            markdown={markdown}
-            onMarkdownChange={onMarkdownChange}
-            theme={theme}
-          />
+          <InputArea {...inputAreaProps} />
         </View>
         <View 
           style={{ 
@@ -66,13 +70,7 @@ export function ContentLayout({
             marginLeft: 12,
           }}
         >
-          <OutputArea
-            markdown={streamingMarkdown ?? markdown}
-            componentRegistry={componentRegistry}
-            theme={theme}
-            onStateUpdate={onStateUpdate}
-            onComponentExtractionUpdate={onComponentExtractionUpdate}
-          />
+          <OutputArea {...outputAreaProps} />
         </View>
       </View>
     );
@@ -80,24 +78,13 @@ export function ContentLayout({
 
   // Mobile: stacked layout (input on top, output on bottom)
   return (
-    <View className="flex-1" style={{ height: safeViewportHeight }}>
-      <View className="flex-1" style={{ height: sectionHeight, marginBottom: 24 }}>
-        <InputArea
-          markdown={markdown}
-          onMarkdownChange={onMarkdownChange}
-          theme={theme}
-        />
+    <View style={{ flex: 1, height: safeViewportHeight }}>
+      <View style={{ flex: 1, height: sectionHeight, marginBottom: gapBetweenSections }}>
+        <InputArea {...inputAreaProps} />
       </View>
-      <View className="flex-1" style={{ height: sectionHeight }}>
-        <OutputArea
-          markdown={streamingMarkdown ?? markdown}
-          componentRegistry={componentRegistry}
-          theme={theme}
-          onStateUpdate={onStateUpdate}
-          onComponentExtractionUpdate={onComponentExtractionUpdate}
-        />
+      <View style={{ flex: 1, height: sectionHeight }}>
+        <OutputArea {...outputAreaProps} />
       </View>
     </View>
   );
 }
-

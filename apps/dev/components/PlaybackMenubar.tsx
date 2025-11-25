@@ -22,9 +22,6 @@ export function PlaybackMenubar({
   onStepForward,
 }: PlaybackMenubarProps) {
   const handlePlayPause = () => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/ba72c841-4600-456b-adad-25adf0868af7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PlaybackMenubar.tsx:playPause',message:'Play/Pause clicked',data:{isStreaming,isPaused,action:isStreaming&&!isPaused?'pause':'play'},timestamp:Date.now(),sessionId:'debug-session',runId:'streaming-test',hypothesisId:'H'})}).catch(()=>{});
-    // #endregion
     onPlayPause();
   };
 
@@ -88,7 +85,7 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: 4,
     justifyContent: 'space-evenly',
-    backgroundColor: '#2a2a2a',
+    backgroundColor: '#262626',
     height: 38,
     minWidth: 140,
     // Same shadow as FAB - consistent across mobile and web

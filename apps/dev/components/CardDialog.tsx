@@ -1,21 +1,37 @@
 import React from 'react';
 import { View, StyleSheet, Platform, Text } from 'react-native';
-import { Card, CardContent } from '@darkresearch/design-system';
+import { 
+  Card, 
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@darkresearch/design-system';
+import type { StyleProp, ViewStyle } from 'react-native';
 
 interface CardDialogProps {
   children?: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+  title?: string;
+  description?: string;
 }
 
-export function CardDialog({ children }: CardDialogProps) {
-  // #region agent log
-  React.useEffect(() => {
-    fetch('http://127.0.0.1:7242/ingest/ba72c841-4600-456b-adad-25adf0868af7',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CardDialog.tsx:CardDialog',message:'CardDialog component rendering',data:{platform:Platform.OS,hasChildren:!!children},timestamp:Date.now(),sessionId:'debug-session',runId:'card-dialog-shared',hypothesisId:'A'})}).catch(()=>{});
-  }, [children]);
-  // #endregion
+export function CardDialog({ 
+  title,
+  description,
+  children, 
+  style 
+}: CardDialogProps) {
 
   return (
     <View style={cardDialogStyles.container}>
-      <Card style={{ width: 320 }}>
+      <Card style={{ width: 320, ...(style as object) }}>
+        <CardHeader style={{ flexDirection: 'row' }}>
+          <View style={{ flex: 1, gap: 6 }}>
+            <CardTitle>{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </View>
+        </CardHeader>
         <CardContent>
           {children || <Text>Empty card for now - just testing visibility</Text>}
         </CardContent>

@@ -37,25 +37,21 @@ export function FAB({
   // For a squircle that fills the square, r = dimension/2
   const cornerRadius = dimension / 2;
   
-  // Flatten styles to prevent NativeWind CssInterop from processing arrays
-  const fabStyle = StyleSheet.flatten([
-    styles.fab,
-    {
-      width: dimension,
-      height: dimension,
-      backgroundColor: variant === 'primary' ? colors.fg : colors.bg,
-    },
-  ]);
-  
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
       activeOpacity={0.7}
-      style={{ opacity: disabled ? 0.5 : 1 }}
+      style={{ 
+        opacity: disabled ? 0.5 : 1,
+        backgroundColor: 'rgba(0,0,0,0)',
+      }}
     >
       <Squircle
-        style={fabStyle}
+        style={{
+          width: dimension,
+          height: dimension,
+        }}
         cornerRadius={cornerRadius}
         cornerSmoothing={0.6}
       >
@@ -68,13 +64,6 @@ export function FAB({
 }
 
 const styles = StyleSheet.create({
-  fab: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
   iconContainer: {
     flex: 1,
     justifyContent: 'center',

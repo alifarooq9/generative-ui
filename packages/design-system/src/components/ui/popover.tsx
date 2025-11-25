@@ -43,7 +43,7 @@ function PopoverContent({
   return (
     <PopoverPrimitive.Portal hostName={portalHost}>
       <LoggingWrapper location="popover.tsx:Portal" message="Portal rendering" data={{contextOpen:context.open,portalHost}} hypothesisId="B">
-        <FullWindowOverlay>
+      <FullWindowOverlay>
           <LoggingWrapper location="popover.tsx:FullWindowOverlay" message="FullWindowOverlay rendering" data={{contextOpen:context.open,platform:Platform.OS}} hypothesisId="C">
             <PopoverPrimitive.Overlay 
               style={Platform.select({ native: StyleSheet.absoluteFill })}
@@ -57,31 +57,31 @@ function PopoverContent({
             >
               <LoggingWrapper location="popover.tsx:Overlay" message="Overlay rendering" data={{contextOpen:context.open}} hypothesisId="D">
                 <LoggingWrapper location="popover.tsx:Content" message="Content rendering" data={{contextOpen:context.open,align,sideOffset}} hypothesisId="F">
-                  <NativeOnlyAnimatedView entering={FadeIn.duration(200)} exiting={FadeOut}>
-                    <TextClassContext.Provider value="text-slate-950 dark:text-slate-50">
-                      <PopoverPrimitive.Content
-                        align={align}
-                        sideOffset={sideOffset}
-                        className={cn(
-                          'bg-white border-slate-200 outline-hidden z-50 w-72 rounded-md border p-4 shadow-md shadow-black/5 dark:bg-slate-950 dark:border-slate-800',
-                          Platform.select({
-                            web: cn(
-                              'animate-in fade-in-0 zoom-in-95 origin-(--radix-popover-content-transform-origin) cursor-auto',
-                              props.side === 'bottom' && 'slide-in-from-top-2',
-                              props.side === 'top' && 'slide-in-from-bottom-2'
-                            ),
-                          }),
-                          className
-                        )}
-                        {...props}
-                      />
-                    </TextClassContext.Provider>
-                  </NativeOnlyAnimatedView>
+          <NativeOnlyAnimatedView entering={FadeIn.duration(200)} exiting={FadeOut}>
+            <TextClassContext.Provider value="text-slate-950 dark:text-slate-50">
+              <PopoverPrimitive.Content
+                align={align}
+                sideOffset={sideOffset}
+                className={cn(
+                  'bg-white border-slate-200 outline-hidden z-50 w-72 rounded-md border p-4 shadow-md shadow-black/5 dark:bg-slate-950 dark:border-slate-800',
+                  Platform.select({
+                    web: cn(
+                      'animate-in fade-in-0 zoom-in-95 origin-(--radix-popover-content-transform-origin) cursor-auto',
+                      props.side === 'bottom' && 'slide-in-from-top-2',
+                      props.side === 'top' && 'slide-in-from-bottom-2'
+                    ),
+                  }),
+                  className
+                )}
+                {...props}
+              />
+            </TextClassContext.Provider>
+          </NativeOnlyAnimatedView>
                 </LoggingWrapper>
               </LoggingWrapper>
-            </PopoverPrimitive.Overlay>
+        </PopoverPrimitive.Overlay>
           </LoggingWrapper>
-        </FullWindowOverlay>
+      </FullWindowOverlay>
       </LoggingWrapper>
     </PopoverPrimitive.Portal>
   );

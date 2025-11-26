@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "Starter",
+    "name": "app-starter",
     "slug": "starter",
     "scheme": "starter",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./assets/app-icon.png",

@@ -1,11 +1,18 @@
-// Load Satoshi OTF fonts for all platforms (web and native)
-import { useFonts } from 'expo-font';
+// Load Geist fonts from Google Fonts
+import {
+  useFonts as useGeistFonts,
+  Geist_400Regular,
+  Geist_500Medium,
+  Geist_700Bold,
+} from '@expo-google-fonts/geist';
 
 export function useAppFonts() {
-  return useFonts({
-    'Satoshi-Regular': require('../assets/fonts/Satoshi-Regular.otf'),
-    'Satoshi-Medium': require('../assets/fonts/Satoshi-Medium.otf'),
-    'Satoshi-Bold': require('../assets/fonts/Satoshi-Bold.otf'),
+  const [fontsLoaded] = useGeistFonts({
+    Geist_400Regular,
+    Geist_500Medium,
+    Geist_700Bold,
   });
+
+  return [fontsLoaded];
 }
 

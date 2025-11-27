@@ -25,6 +25,12 @@
     ],
     "experiments": {
       "autolinkingModuleResolution": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "073f23f7-77a4-4f2f-ab27-e0d1dc4bafb2"
+      }
+    },
+    "owner": "dark-research"
   }
 }

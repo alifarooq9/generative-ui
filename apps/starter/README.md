@@ -1,21 +1,19 @@
-# Dark App Template
+# Starter Template
 
-Quick-start template for new React Native apps with Dark design system.
+Quick-start template for new React Native apps using the generative-ui packages.
 
 ## Features
 
-- ✅ **Design System**: `@darkresearch/design-system` pre-configured
-- ✅ **Generative UI Ready**: `galerie-rn` + `streamdown-rn` available
-- ✅ **Squircles**: Modern iOS-style rounded corners
-- ✅ **Dark Branding**: #EEEDED + #262626 color system
-- ✅ **NativeWind**: Tailwind CSS for React Native
-- ✅ **Cross-platform**: iOS, Android, Web
+- ✅ **Expo** — Universal React Native framework
+- ✅ **streamdown-rn** — Streaming markdown renderer
+- ✅ **galerie-rn** — Generative UI canvas (experimental)
+- ✅ **Cross-platform** — iOS, Android, Web
 
 ## Quick Start
 
 ### Forking This Template
 
-**⚠️ Important**: This template must be copied OUTSIDE the monorepo to work properly.
+**⚠️ Important**: Copy this template OUTSIDE the monorepo to use it.
 
 ```bash
 # From monorepo root
@@ -28,8 +26,10 @@ bun run setup
 # Install dependencies
 bun install
 
-# Run on iOS
+# Generate native projects
 npx expo prebuild
+
+# Run on iOS
 bun run ios
 
 # Run on web
@@ -38,46 +38,45 @@ bun run web
 
 The setup script will prompt you for:
 - App name
-- Package name
+- Package name  
 - Bundle IDs (iOS/Android)
-- Design system dependency path
 
-See [FORKING.md](./FORKING.md) for detailed forking instructions and troubleshooting.
+See [FORKING.md](./FORKING.md) for detailed instructions.
 
 ### Using in Monorepo
 
-If you're developing within the monorepo, you can use the template as-is. The setup script will detect the monorepo context and preserve workspace dependencies.
+If developing within the monorepo, you can run directly:
 
-## Testing
-
-This template includes Storybook stories (`App.stories.tsx`) as reference examples following our `.cursor/rules/testing.mdc` guidelines.
-
-**Visual testing**:
 ```bash
-npm run storybook # Visual component gallery
+cd apps/starter
+bun install
+npx expo prebuild
+bun run ios
 ```
-
-**Note**: Automated testing infrastructure will be added in a future update.
 
 ## Project Structure
 
 ```
-my-new-app/
-├── App.tsx              # Main app entry
-├── components/          # Your app components
+starter/
+├── src/
+│   ├── App.tsx          # Main app component
+│   ├── components/      # App components
+│   └── useFonts.ts      # Font loading
+├── assets/              # Images, fonts
 ├── app.json             # Expo configuration
-└── package.json         # Dependencies
+└── package.json
 ```
 
 ## Available Packages
 
-- `@darkresearch/design-system` - UI components
-- `streamdown-rn` - Streaming markdown renderer
-- `galerie-rn` - Generative UI canvas
+After forking, you can use these packages:
+
+```tsx
+import { StreamdownRN } from 'streamdown-rn';
+import { Canvas } from 'galerie-rn';  // experimental
+```
 
 ## Learn More
 
-- [Design System Documentation](../../design-system/README.md)
-- [Cursor AI Rules](.cursor/rules/)
-- [AGENTS.md](../../AGENTS.md) - AI development workflow
-
+- [streamdown-rn Documentation](../../packages/streamdown-rn/README.md)
+- [AGENTS.md](../../AGENTS.md) — AI development workflow

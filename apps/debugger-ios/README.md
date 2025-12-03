@@ -1,83 +1,101 @@
-# Dark App Template
+# Debugger iOS
 
-Quick-start template for new React Native apps with Dark design system.
+iOS companion app for testing `streamdown-rn` on real devices.
 
-## Features
+## Overview
 
-- ✅ **Design System**: `@darkresearch/design-system` pre-configured
-- ✅ **Generative UI Ready**: `galerie-rn` + `streamdown-rn` available
-- ✅ **Squircles**: Modern iOS-style rounded corners
-- ✅ **Dark Branding**: #EEEDED + #262626 color system
-- ✅ **NativeWind**: Tailwind CSS for React Native
-- ✅ **Cross-platform**: iOS, Android, Web
+This app connects to the web debugger via WebSocket and renders the same streaming content on a real iOS device. This allows you to test:
 
-## Quick Start
+- Native rendering performance
+- iOS-specific font and layout behavior
+- Real device streaming experience
 
-### Forking This Template
+## Getting Started
 
-**⚠️ Important**: This template must be copied OUTSIDE the monorepo to work properly.
+### Prerequisites
+
+- The web debugger must be running (`apps/debugger`)
+- Xcode installed
+- CocoaPods installed
+
+### First Time Setup
 
 ```bash
-# From monorepo root
-cp -r apps/starter ../my-new-app
-cd ../my-new-app
-
-# Run the setup script to configure your app
-bun run setup
-
-# Install dependencies
+cd apps/debugger-ios
 bun install
 
-# Run on iOS
-npx expo prebuild
-bun run ios
-
-# Run on web
-bun run web
+# Install iOS dependencies
+cd ios && pod install && cd ..
 ```
 
-The setup script will prompt you for:
-- App name
-- Package name
-- Bundle IDs (iOS/Android)
-- Design system dependency path
+### Running the App
 
-See [FORKING.md](./FORKING.md) for detailed forking instructions and troubleshooting.
-
-### Using in Monorepo
-
-If you're developing within the monorepo, you can use the template as-is. The setup script will detect the monorepo context and preserve workspace dependencies.
-
-## Testing
-
-This template includes Storybook stories (`App.stories.tsx`) as reference examples following our `.cursor/rules/testing.mdc` guidelines.
-
-**Visual testing**:
 ```bash
-npm run storybook # Visual component gallery
+bun run dev    # Starts Metro (port 8082) + builds iOS app
 ```
 
-**Note**: Automated testing infrastructure will be added in a future update.
+> **Note:** Make sure the web debugger is running first:
+> ```bash
+> cd ../debugger && bun run dev:web
+> ```
 
-## Project Structure
+## How It Works
 
 ```
-my-new-app/
-├── App.tsx              # Main app entry
-├── components/          # Your app components
-├── app.json             # Expo configuration
-└── package.json         # Dependencies
+┌─────────────────┐     WebSocket      ┌─────────────────┐
+│  Web Debugger   │ ──────────────────▶│  iOS Debugger   │
+│  (port 8081)    │    (port 3001)     │  (port 8082)    │
+│                 │                     │                 │
+│  Control Panel  │                     │  StreamdownRN   │
+│  + Streaming    │                     │  Renderer       │
+└─────────────────┘                     └─────────────────┘
 ```
 
-## Available Packages
+1. Web debugger streams markdown content
+2. WebSocket server broadcasts to connected clients
+3. iOS app receives content and renders via `StreamdownRN`
 
-- `@darkresearch/design-system` - UI components
-- `streamdown-rn` - Streaming markdown renderer
-- `galerie-rn` - Generative UI canvas
+## Available Scripts
 
-## Learn More
+| Script | Description |
+|--------|-------------|
+| `bun run dev` | Start Metro + build iOS (recommended) |
+| `bun run start` | Start Metro server only |
+| `bun run ios` | Build and run iOS app |
 
-- [Design System Documentation](../../design-system/README.md)
-- [Cursor AI Rules](.cursor/rules/)
-- [AGENTS.md](../../AGENTS.md) - AI development workflow
+## Port Configuration
 
+This app uses **port 8082** to avoid conflicts with the web debugger (port 8081).
+
+The Metro URL is hardcoded in `ios/DebuggeriOS/AppDelegate.swift` to ensure the iOS simulator connects to the correct bundler.
+
+## Troubleshooting
+
+### "No script URL provided"
+
+Make sure Metro is running on port 8082:
+```bash
+bun run start
+```
+
+### WebSocket not connecting
+
+1. Ensure web debugger is running: `cd ../debugger && bun run dev:web`
+2. Check that port 3001 is accessible from the simulator
+
+### Build errors
+
+Clean and rebuild:
+```bash
+cd ios
+rm -rf build Pods Podfile.lock
+pod install
+cd ..
+bun run ios
+```
+
+## Related
+
+- [apps/debugger](../debugger) — Web control panel
+- [packages/streamdown-rn](../../packages/streamdown-rn) — The renderer
+- [packages/debug-components](../../packages/debug-components) — Shared test components

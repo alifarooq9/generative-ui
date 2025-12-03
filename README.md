@@ -1,6 +1,11 @@
+![Generative UI](./assets/generative-ui.png)
+
 # Generative UI
 
-React Native components and tools for building generative UI applications.
+[![npm version](https://img.shields.io/npm/v/streamdown-rn)](https://www.npmjs.com/package/streamdown-rn)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
+Tools and templates for building generative UI applications. Mobile-first, optimized for Expo.
 
 ## Packages
 
@@ -12,22 +17,26 @@ High-performance streaming markdown renderer with dynamic component injection.
 - Format-as-you-type UX
 - Progressive component streaming with skeletons
 - Full GFM support (tables, strikethrough, task lists)
+- Built-in XSS protection
 
 ### [galerie-rn](./packages/galerie-rn) (Experimental)
 
-Generative UI canvas management. Currently a stub for future development.
+2D generative UI canvas infrastructure. Currently a stub for future development.
 
 ## Apps
 
-- **[apps/debugger](./apps/debugger)** — Streamdown debugger with streaming controls
-- **[apps/starter](./apps/starter)** — Starter template app
+- **[apps/debugger](./apps/debugger)** — Web-based streamdown-rn debugger with streaming controls
+- **[apps/debugger-ios](./apps/debugger-ios)** — iOS companion for real-device testing
+- **[apps/starter](./apps/starter)** — Starter template for new apps
 
 ## Quick Start
 
-### Using Streamdown
+### Install Streamdown
 
 ```bash
-bun install streamdown-rn
+npm install streamdown-rn
+# or
+bun add streamdown-rn
 ```
 
 ```tsx
@@ -42,13 +51,34 @@ function ChatMessage({ content }: { content: string }) {
 }
 ```
 
-### Running the Debugger
+### Running the Debuggers
+
+#### Web Debugger (Port 8081)
 
 ```bash
 cd apps/debugger
 bun install
-bun run web
+bun run dev:web    # Starts WebSocket server + Expo web
 ```
+
+Open http://localhost:8081 to access the debugger.
+
+#### iOS Debugger (Port 8082)
+
+The iOS debugger connects to the web debugger via WebSocket to receive streamed content.
+
+```bash
+cd apps/debugger-ios
+bun install
+
+# First time setup
+cd ios && pod install && cd ..
+
+# Run the app
+bun run dev    # Starts Metro on 8082 + builds iOS app
+```
+
+> **Note:** Make sure the web debugger is running first (`bun run dev:web` in apps/debugger) — the iOS app connects to its WebSocket server.
 
 ## Development
 
@@ -59,36 +89,43 @@ bun install
 
 ### Build Packages
 ```bash
-cd packages/streamdown-rn
 bun run build
 ```
 
 ### Run Tests
 ```bash
-cd packages/streamdown-rn
 bun test
+```
+
+### Type Check
+```bash
+bun run type-check
 ```
 
 ## Architecture
 
 ```
 generative-ui/
-├── apps/                   # Expo applications
-│   ├── debugger/           # Streamdown debugger
-│   ├── debugger-ios/       # iOS-only debugger
+├── apps/
+│   ├── debugger/           # Web debugger (port 8081)
+│   ├── debugger-ios/       # iOS debugger (port 8082)
 │   └── starter/            # Starter template
-├── packages/               # Publishable packages
+├── packages/
 │   ├── streamdown-rn/      # Streaming markdown renderer
-│   └── galerie-rn/         # Canvas management (experimental)
-├── .cursor/rules/          # AI coding rules
-└── AGENTS.md               # AI workflow docs
+│   ├── galerie-rn/         # Canvas management (experimental)
+│   └── debug-components/   # Shared debug components
+└── AGENTS.md               # AI development workflow
 ```
 
 ## AI-Assisted Development
 
-This monorepo is optimized for AI-assisted development. See:
-- **[AGENTS.md](./AGENTS.md)** — AI development workflow
-- **[.cursor/rules/](./.cursor/rules/)** — Cursor-specific guidelines
+This monorepo is optimized for AI-assisted development. See **[AGENTS.md](./AGENTS.md)** for the AI development workflow and guidelines.
+
+---
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=darkresearch/generative-ui&type=Date)](https://star-history.com/#darkresearch/generative-ui&Date)
 
 ---
 

@@ -16,11 +16,7 @@ bun test splitter.test.ts   # Run specific test file
 - **`incomplete.test.ts`** — Tag state tracking and incomplete markdown fixing
 - **`parser.test.ts`** — Remark/GFM parsing
 - **`component-extraction.test.ts`** — Component syntax parsing
-
-### Integration Tests (Coming Soon)
-
-- **`integration.test.ts`** — Full streaming scenarios
-- **`ast-rendering.test.ts`** — AST to React component rendering
+- **`sanitize.test.ts`** — URL/prop sanitization and XSS prevention
 
 ### Visual Tests (Storybook)
 

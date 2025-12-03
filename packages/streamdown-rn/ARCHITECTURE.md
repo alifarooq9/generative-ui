@@ -47,7 +47,7 @@ Incoming stream: "# Hello\n\nSome **bold** text"
 
 ```
 src/
-├── __tests__/                        # Unit tests (151 tests)
+├── __tests__/                        # Unit tests (201 tests)
 │   ├── splitter.test.ts              # Block boundary detection
 │   ├── incomplete.test.ts            # Tag state tracking
 │   ├── parser.test.ts                # Remark/GFM parsing
@@ -69,7 +69,8 @@ src/
 │   │   └── logger.ts                 # Debug logging
 │   ├── parser.ts                     # Remark wrapper (cached)
 │   ├── incomplete.ts                 # Tag state + auto-close
-│   └── componentParser.ts            # Component extraction
+│   ├── componentParser.ts            # Component extraction
+│   └── sanitize.ts                   # URL/prop sanitization (XSS protection)
 │
 ├── renderers/                        # Rendering layer
 │   ├── ActiveBlock.tsx               # Streaming block renderer
@@ -171,7 +172,7 @@ Via `remark-gfm`:
 
 ```bash
 bun test
-# ✓ 151 tests passing
+# ✓ 201 tests passing
 ```
 
 **Test Coverage:**
@@ -179,6 +180,7 @@ bun test
 - Incomplete handler (tag state tracking, auto-close)
 - Parser (remark/GFM parsing)
 - Component extraction (syntax parsing, streaming)
+- Security (URL sanitization, XSS prevention)
 
 ---
 

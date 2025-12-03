@@ -1,136 +1,112 @@
 # AI-Assisted Development Workflow
 
-This monorepo uses AI-first development. All AI coding tools (Cursor, Claude, GitHub Copilot, Windsurf, etc.) should follow these workflows.
+This monorepo uses AI-first development. All AI coding tools (Cursor, Claude, GitHub Copilot, etc.) should follow these workflows.
 
 ## Repository Structure
 
 ```
 generative-ui/
+├── apps/
+│   ├── debugger/           # Web debugger (port 8081)
+│   ├── debugger-ios/       # iOS debugger (port 8082)
+│   └── starter/            # Starter template
 ├── packages/
-│   ├── streamdown-rn/      # Streaming markdown parser/renderer
-│   ├── galerie-rn/         # Generative UI canvas (built on streamdown)
-│   ├── design-system/      # UI component library
-│   └── app-template/       # Quick-start for new apps
-├── dev/                    # Development playground
+│   ├── streamdown-rn/      # Streaming markdown renderer
+│   ├── galerie-rn/         # Generative UI canvas (experimental)
+│   └── debug-components/   # Shared debug components
+└── AGENTS.md               # This file
 ```
 
 **How they relate**:
-- Apps use `@darkresearch/design-system` for UI
-- Apps use `galerie-rn` for generative canvas
-- Galerie uses `streamdown-rn` for parsing
+- Apps use `streamdown-rn` for streaming markdown
+- Apps use `galerie-rn` for generative canvas (experimental)
+- Debugger apps share components via `debug-components`
 
 ## Development Flow
 
-### 1. Component Creation
-When adding a UI component to design-system:
+### 1. Working on streamdown-rn
 
-**Step 1**: Use React Native Reusables (don't build from scratch)
 ```bash
-cd packages/design-system
-npx @react-native-reusables/cli add button
+cd packages/streamdown-rn
+
+# Run tests
+bun test
+
+# Watch mode
+bun test --watch
+
+# Type check
+bun run type-check
+
+# Build
+bun run build
 ```
 
-**Step 2**: AI generates tests + story for the component
+### 2. Testing with Debugger
+
 ```bash
-# AI creates these files:
-src/components/ui/button.test.tsx
-src/components/ui/button.stories.tsx
-```
+# Terminal 1: Web debugger
+cd apps/debugger
+bun run dev:web
 
-**Step 3**: Export from index
-```tsx
-// src/index.ts
-export { Button } from './components/ui/button';
-```
-
-**Requirements**:
-- Use Reusables components (auto Dark-branded via tailwind.config)
-- Add tests (snapshot, interaction, accessibility)
-- Add Storybook story with variants
-- Only create custom components for things NOT in Reusables
-- Use Squircle wrapper if smooth corners needed
-
-### 2. Testing Commands
-```bash
-bun test                    # Run all tests
-bun run test:watch          # Watch mode
-bun run storybook           # Visual component gallery
-bun run lint                # Code quality
+# Terminal 2: iOS debugger (optional)
+cd apps/debugger-ios
+bun run dev
 ```
 
 ### 3. Verification Checklist
-Before completing any UI work:
+
+Before completing any work:
 - ✅ All tests pass (`bun test`)
-- ✅ Storybook renders all variants
-- ✅ No console warnings about re-renders
-- ✅ Performance budgets met (1000 renders < 100ms)
-- ✅ Touch targets ≥44px on mobile
-- ✅ Accessibility labels present
+- ✅ Type check passes (`bun run type-check`)
+- ✅ Build succeeds (`bun run build`)
+- ✅ Manual testing in debugger
 
-## Design System
-
-### Color Philosophy
-Two base colors + opacity:
-- **Background**: `#EEEDED`
-- **Foreground**: `#262626`
-- **Everything else**: Opacity variants (10%, 40%, 60%)
-
-### Shapes
-- Squircles everywhere (cornerSmoothing: 0.6)
-- Native performance (react-native-fast-squircle)
-
-### Component Standards
-- React.memo for components receiving props
-- useCallback for all handlers
-- Accessibility props (accessibilityLabel, accessibilityRole)
-- Minimum 44x44 touch targets
-
-## Cursor-Specific Rules
-
-Cursor automatically reads `.cursor/rules/*.mdc` files:
-- `design-system.mdc` - Component creation guidelines
-- `testing.mdc` - Test requirements
-- `performance.mdc` - Performance budgets
-- `react-native.mdc` - Platform-specific best practices
-
-## Adding New Components
-
-See [packages/design-system/ADDING_COMPONENTS.md](./packages/design-system/ADDING_COMPONENTS.md) for detailed guide on adding React Native Reusables components to the design system.
-
-## Quick Start (New App)
+## Testing Commands
 
 ```bash
-# Clone the template
-cp -r packages/app-template ../my-new-app
-cd ../my-new-app
-
-# Install dependencies
-bun install
-
-# Run on iOS
-npx expo prebuild
-npx expo run:ios
-
-# Run on web
-bun run web
+# From repo root
+bun test              # Run all tests
+bun run build         # Build all packages
+bun run type-check    # Type check all packages
 ```
 
-Your new app now has:
-- ✅ Design system components
-- ✅ Squircle aesthetic
-- ✅ Dark branding
-- ✅ Generative UI ready (galerie + streamdown available)
+## Package Guidelines
+
+### streamdown-rn
+
+The core streaming markdown renderer. Key areas:
+
+- `src/core/` — Parsing and block splitting logic
+- `src/renderers/` — React Native rendering
+- `src/themes/` — Theming system
+- `src/__tests__/` — Test suites
+
+**When modifying:**
+- Add/update tests for new functionality
+- Ensure streaming edge cases are handled
+- Test with incomplete markdown (simulates real streaming)
+
+### galerie-rn
+
+Experimental canvas for 2D generative layouts. Currently a stub.
+
+### debug-components
+
+Shared components for testing. Add new test components here:
+
+```tsx
+// packages/debug-components/src/components/MyComponent.tsx
+export const MyComponent = ({ ... }) => { ... };
+
+// packages/debug-components/src/registry.ts
+// Register in debugComponentRegistry
+```
 
 ## Performance Philosophy
 
-### Streaming Apps
-Our apps stream content character-by-character. Performance is critical:
-- Control panels must remain responsive during streaming
-- Use React Context for debug/streaming data
-- Never pass changing strings as props (use lengths/counts)
-- Test with 50ms streaming intervals
+Streaming apps render content character-by-character. Performance is critical:
 
-### Common Pitfalls
 ```tsx
 // ❌ BAD - Re-renders every character
 <Controls streamingText={text} />
@@ -139,50 +115,45 @@ Our apps stream content character-by-character. Performance is critical:
 <Controls streamingLength={text.length} />
 ```
 
-## Icon Selection
+Key principles:
+- Block-level memoization (stable blocks don't re-render)
+- Character-level parsing for consistent boundaries
+- Never pass changing strings as props
 
-We use **Lucide React Native** for all icons in the Dark Design System.
+## Security
 
-### Finding Icons
+streamdown-rn includes built-in XSS protection:
+- URL sanitization (allowlist approach)
+- Prop sanitization for custom components
+- HTML rendered as text, never executed
 
-1. **Browse icons**: https://lucide.dev/icons/
-2. **Search**: Use the search bar on the Lucide website
-3. **Import**: Use the exact icon name from the website (e.g., `Plus`, `Home`, `Settings`)
-
-### Usage
-
-**Always import from design-system** (never import directly from `lucide-react-native`):
-
-```tsx
-import { FAB, Plus } from '@darkresearch/design-system';
-
-<FAB
-  icon={
-    <Plus
-      size={20}
-      color="#EEEDED"
-      strokeWidth={1.5}
-    />
-  }
-  onPress={() => {}}
-/>
-```
-
-### Icon Props
-
-- `size`: Number (default: 24) - Size in pixels
-- `color`: String (default: "currentColor") - Icon color
-- `strokeWidth`: Number (default: 2) - Stroke width
-
-See `.cursor/rules/icons.mdc` for complete icon selection guide.
+See `packages/streamdown-rn/README.md#security` for details.
 
 ## AI Development Best Practices
 
-1. **Start with tests** - Write test cases first, implementation second
-2. **Visual feedback** - Run Storybook while developing
-3. **Iterate fast** - AI can regenerate components quickly
-4. **Trust but verify** - Always run test suite before committing
+1. **Start with tests** — Write test cases first, implementation second
+2. **Use the debugger** — Visual feedback during development
+3. **Check streaming edge cases** — Incomplete markdown, chunk boundaries
+4. **Run full verification** — Tests, types, build before committing
 
-## Questions?
-See detailed rules in `.cursor/rules/` or ask in #engineering.
+## Common Tasks
 
+### Adding a Test Preset
+
+Edit `apps/debugger/src/presets.ts`:
+
+```typescript
+export const STABLE_PRESETS = {
+  my_preset: `# Test\n\nContent here...`,
+};
+```
+
+### Adding a Debug Component
+
+1. Create component in `packages/debug-components/src/components/`
+2. Register in `packages/debug-components/src/registry.ts`
+3. Test in debugger with component syntax: `[{c:"MyComponent",p:{...}}]`
+
+### Updating Security Tests
+
+Add tests to `packages/streamdown-rn/src/__tests__/sanitize.test.ts`

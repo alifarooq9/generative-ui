@@ -7,8 +7,8 @@ const packagesRoot = path.resolve(monorepoRoot, 'packages');
 
 const config = getDefaultConfig(projectRoot);
 
-// Include monorepo root and packages in watchFolders for proper module resolution
-config.watchFolders = [monorepoRoot, packagesRoot];
+// Only watch packages and node_modules, NOT other apps
+config.watchFolders = [packagesRoot, path.resolve(monorepoRoot, 'node_modules')];
 
 // Configure resolver to look in both app and monorepo node_modules
 config.resolver = {
@@ -17,10 +17,11 @@ config.resolver = {
     path.resolve(projectRoot, 'node_modules'),
     path.resolve(monorepoRoot, 'node_modules'),
   ],
-  // // Ensure we can resolve workspace packages
-  // extraNodeModules: {
-  //   'react-native-unistyles': path.resolve(monorepoRoot, 'node_modules/react-native-unistyles'),
-  // },
+  // Exclude other apps from resolution
+  blockList: [
+    /apps\/debugger-ios\/.*/,
+    /apps\/starter\/.*/,
+  ],
 };
 
 module.exports = config;

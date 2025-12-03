@@ -1,17 +1,30 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  SafeAreaView,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
   Pressable,
   Platform,
 } from 'react-native';
+import { StyleSheet, UnistylesRuntime } from 'react-native-unistyles';
 import { StreamdownRN, type DebugSnapshot } from 'streamdown-rn';
 import { PRESETS } from './presets';
 import { debugComponentRegistry } from './debugComponents';
+
+// Configure Unistyles
+StyleSheet.configure({
+  themes: {
+    dark: {
+      colors: {
+        bg: '#050505',
+      },
+    },
+  },
+  settings: {
+    initialTheme: 'dark',
+  },
+});
 
 const WS_URL = 'ws://localhost:3001';
 
@@ -138,7 +151,7 @@ export default function App() {
     fullContent.length > 0 ? position / fullContent.length : 0;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Streamdown Debugger</Text>
@@ -384,7 +397,7 @@ export default function App() {
           )}
         </ScrollView>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -470,10 +483,12 @@ const PresetSelector = ({
   </ScrollView>
 );
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
-    backgroundColor: '#050505',
+    backgroundColor: theme.colors.bg,
+    paddingTop: Platform.OS !== 'web' ? UnistylesRuntime.insets.top : 0,
+    paddingBottom: Platform.OS !== 'web' ? UnistylesRuntime.insets.bottom : 0,
   },
   header: {
     paddingHorizontal: 24,
@@ -711,4 +726,4 @@ const styles = StyleSheet.create({
     borderColor: '#1f1f1f',
     fontFamily: Platform.OS === 'web' ? 'monospace' : 'Courier',
   },
-});
+}));

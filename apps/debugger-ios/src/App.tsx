@@ -1,8 +1,28 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
+import { StyleSheet, UnistylesRuntime } from 'react-native-unistyles';
 import { StreamdownRN } from 'streamdown-rn';
 
 const WS_URL = 'ws://localhost:3001';
+
+// Configure Unistyles
+StyleSheet.configure({
+  themes: {
+    dark: {
+      colors: {
+        bg: '#1a1a1a',
+        statusBg: '#141414',
+        border: '#333',
+        text: '#888',
+        placeholder: '#666',
+        connected: '#4ade80',
+      },
+    },
+  },
+  settings: {
+    initialTheme: 'dark',
+  },
+});
 
 export default function App() {
   const [content, setContent] = useState('');
@@ -56,7 +76,7 @@ export default function App() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.statusBar}>
         <Text style={[styles.dot, connected && styles.dotConnected]}>●</Text>
         <Text style={styles.statusText}>
@@ -75,33 +95,35 @@ export default function App() {
           </Text>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.colors.bg,
+    paddingTop: UnistylesRuntime.insets.top,
+    paddingBottom: UnistylesRuntime.insets.bottom,
   },
   statusBar: {
     flexDirection: 'row',
     padding: 12,
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
-    backgroundColor: '#141414',
+    borderBottomColor: theme.colors.border,
+    backgroundColor: theme.colors.statusBg,
   },
   dot: {
     fontSize: 14,
-    color: '#666',
+    color: theme.colors.placeholder,
     marginRight: 8,
   },
   dotConnected: {
-    color: '#4ade80',
+    color: theme.colors.connected,
   },
   statusText: {
-    color: '#888',
+    color: theme.colors.text,
     fontSize: 14,
   },
   content: {
@@ -111,9 +133,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   placeholder: {
-    color: '#666',
+    color: theme.colors.placeholder,
     fontSize: 16,
     textAlign: 'center',
     marginTop: 40,
   },
-});
+}));

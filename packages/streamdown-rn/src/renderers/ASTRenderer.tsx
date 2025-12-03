@@ -14,10 +14,11 @@
 import React, { ReactNode } from 'react';
 import { Text, View, ScrollView, Image, Platform } from 'react-native';
 import SyntaxHighlighter from 'react-native-syntax-highlighter';
-import type { Content, Parent, Table as TableNode, Code as CodeNode, List as ListNode, Image as ImageNode } from 'mdast';
+import type { Content, Parent, Table as TableNode, Code as CodeNode, List as ListNode, Image as ImageNode, Link as LinkNode } from 'mdast';
 import type { ThemeConfig, ComponentRegistry, StableBlock } from '../core/types';
 import { getTextStyles, getBlockStyles } from '../themes';
 import { extractComponentData, type ComponentData } from '../core/componentParser';
+import { sanitizeURL } from '../core/sanitize';
 
 // ============================================================================
 // Syntax Highlighting Utilities
@@ -222,7 +223,20 @@ function renderNode(
         </Text>
       );
     
-    case 'link':
+    case 'link': {
+      // Sanitize URL to prevent XSS via javascript: or data: protocols
+      const linkNode = node as LinkNode;
+      const safeUrl = sanitizeURL(linkNode.url);
+      
+      // If URL is dangerous, render children as plain text without link styling
+      if (!safeUrl) {
+        return (
+          <Text key={key} style={styles.body}>
+            {renderChildren(node, theme, componentRegistry, isStreaming)}
+          </Text>
+        );
+      }
+      
       return (
         <Text
           key={key}
@@ -232,6 +246,7 @@ function renderNode(
           {renderChildren(node, theme, componentRegistry, isStreaming)}
         </Text>
       );
+    }
     
     case 'image':
       return renderImage(node as ImageNode, theme, key);
@@ -509,6 +524,7 @@ function renderTable(
 
 /**
  * Render an image
+ * URL is sanitized to prevent XSS via javascript: or data: protocols
  */
 function renderImage(
   node: ImageNode,
@@ -517,16 +533,30 @@ function renderImage(
 ): ReactNode {
   const styles = getTextStyles(theme);
   
-  // For now, render as a placeholder with alt text
-  // Full image support would require Image component with dimensions
   if (!node.url) {
+    return null;
+  }
+  
+  // Sanitize URL to prevent XSS
+  const safeUrl = sanitizeURL(node.url);
+  if (!safeUrl) {
+    // Dangerous URL - render alt text only as a fallback
+    if (node.alt) {
+      return (
+        <View key={key} style={{ marginVertical: theme.spacing.block }}>
+          <Text style={[styles.body, { color: theme.colors.muted, textAlign: 'center' }]}>
+            [Image: {node.alt}]
+          </Text>
+        </View>
+      );
+    }
     return null;
   }
   
   return (
     <View key={key} style={{ marginVertical: theme.spacing.block }}>
       <Image
-        source={{ uri: node.url }}
+        source={{ uri: safeUrl }}
         style={{ 
           width: '100%', 
           height: 200, 

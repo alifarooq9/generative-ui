@@ -162,6 +162,57 @@ Enable debug callbacks to inspect the streaming state:
 | `onError` | `(error: Error) => void` | Error handler |
 | `isComplete` | `boolean` | Set `true` when streaming finishes |
 
+## Security
+
+streamdown-rn includes built-in protection against XSS attacks:
+
+### URL Sanitization
+
+All URLs in markdown links, images, and component props are automatically sanitized using an **allowlist approach**. Only these protocols are permitted:
+
+- `http:`, `https:` — Web URLs
+- `mailto:` — Email links
+- `tel:`, `sms:` — Phone links
+- Relative URLs (`/path`, `#anchor`, `./file`)
+
+**Blocked protocols** (examples):
+- `javascript:` — Script execution
+- `data:` — Inline data (can contain scripts)
+- `vbscript:` — Legacy script execution
+- `file:` — Local file access
+
+### Component Props
+
+Component props from the `[{c:"Name",p:{...}}]` syntax are sanitized recursively. Any URL-like string values are checked against the allowlist.
+
+```tsx
+// This malicious input:
+[{c:"Card",p:{"url":"javascript:alert(1)"}}]
+
+// Results in sanitized props:
+{ url: '' }  // Dangerous URL replaced with empty string
+```
+
+### HTML in Markdown
+
+Raw HTML in markdown (e.g., `<script>alert(1)</script>`) is rendered as **plain text**, not executed. We never use `dangerouslySetInnerHTML`.
+
+### Using Sanitization Utilities
+
+You can use the sanitization functions directly if needed:
+
+```tsx
+import { sanitizeURL, sanitizeProps } from 'streamdown-rn';
+
+// Sanitize a single URL
+sanitizeURL('javascript:alert(1)');  // null
+sanitizeURL('https://example.com');  // 'https://example.com'
+
+// Sanitize an object with URL props
+sanitizeProps({ href: 'javascript:evil()', title: 'Safe' });
+// { href: '', title: 'Safe' }
+```
+
 ## Architecture
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed implementation notes.

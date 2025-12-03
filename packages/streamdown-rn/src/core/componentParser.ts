@@ -5,6 +5,8 @@
  * No React dependencies - safe for testing.
  */
 
+import { sanitizeProps } from './sanitize';
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -126,6 +128,7 @@ export function tryParseIncompleteJSON(json: string): unknown | null {
 
 /**
  * Recursively extract children from nested component arrays (complete JSON).
+ * Props are sanitized to prevent XSS via malicious URLs.
  */
 export function extractChildrenRecursive(children: unknown[]): ComponentData[] {
   return children
@@ -134,7 +137,7 @@ export function extractChildrenRecursive(children: unknown[]): ComponentData[] {
     )
     .map(child => ({
       name: child.c,
-      props: child.p ?? {},
+      props: sanitizeProps(child.p ?? {}),
       style: child.style,
       children: child.children ? extractChildrenRecursive(child.children) : undefined,
     }));
@@ -159,6 +162,7 @@ function findBalancedClose(content: string, openChar: string, closeChar: string)
 /**
  * Extract a single component's props and style from partial content.
  * Content should start at the opening { of the component.
+ * Props are sanitized to prevent XSS via malicious URLs.
  */
 function extractSingleComponentData(content: string): { props: Record<string, unknown>; style?: Record<string, unknown> } {
   let props: Record<string, unknown> = {};
@@ -202,7 +206,8 @@ function extractSingleComponentData(content: string): { props: Record<string, un
     }
   }
   
-  return { props, style };
+  // Sanitize props to prevent XSS
+  return { props: sanitizeProps(props), style };
 }
 
 /**
@@ -262,6 +267,7 @@ function extractPartialChildren(childrenContent: string): ComponentData[] {
  * Supports: [{c:"Name",p:{...},children:[...]}]
  * 
  * Works for both complete and streaming (partial) content.
+ * Props are sanitized to prevent XSS via malicious URLs.
  */
 export function extractComponentData(content: string): ComponentData {
   const nameMatch = content.match(/\[\{c:\s*"([^"]+)"/);
@@ -286,7 +292,7 @@ export function extractComponentData(content: string): ComponentData {
       props = (parsed.p as Record<string, unknown>) ?? {};
       style = parsed.style as Record<string, unknown> | undefined;
       
-      // Extract children if present
+      // Extract children if present (already sanitized in extractChildrenRecursive)
       if (Array.isArray(parsed.children)) {
         children = extractChildrenRecursive(parsed.children);
       }
@@ -334,7 +340,7 @@ export function extractComponentData(content: string): ComponentData {
       }
     }
     
-    // Extract children (even if partial)
+    // Extract children (even if partial) - already sanitized in extractPartialChildren
     const childrenMatch = componentContent.match(/,\s*children:\s*\[/);
     if (childrenMatch) {
       const childrenStart = childrenMatch.index! + childrenMatch[0].length;
@@ -344,6 +350,7 @@ export function extractComponentData(content: string): ComponentData {
     }
   }
   
-  return { name, props, style, children };
+  // Sanitize props to prevent XSS via malicious URLs
+  return { name, props: sanitizeProps(props), style, children };
 }
 

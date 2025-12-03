@@ -31,6 +31,7 @@ export default function App() {
   useEffect(() => {
     let ws: WebSocket | null = null;
     let reconnectTimeout: NodeJS.Timeout | null = null;
+    let hasConnectedOnce = false;
     
     const connect = () => {
       try {
@@ -38,18 +39,26 @@ export default function App() {
         
         ws.onopen = () => {
           setConnected(true);
-          console.log('✅ Connected to debugger');
+          if (!hasConnectedOnce) {
+            console.log('✅ Connected to debugger');
+            hasConnectedOnce = true;
+          }
         };
         
         ws.onclose = () => {
           setConnected(false);
-          console.log('❌ Disconnected, reconnecting...');
+          // Only log disconnect once
+          if (hasConnectedOnce) {
+            console.log('⚠️  Disconnected from debugger');
+            hasConnectedOnce = false;
+          }
           reconnectTimeout = setTimeout(connect, 1000);
         };
         
-        ws.onerror = (error) => {
-          console.error('WebSocket error:', error);
+        // Suppress error logging - onclose already handles disconnections
+        ws.onerror = () => {
           setConnected(false);
+          // Errors are handled by onclose, no need to log here
         };
         
         ws.onmessage = (e) => {
@@ -57,11 +66,11 @@ export default function App() {
             const data = JSON.parse(e.data);
             setContent(data.content || '');
           } catch (error) {
+            // Only log parse errors, not connection errors
             console.error('Failed to parse message:', error);
           }
         };
       } catch (error) {
-        console.error('Failed to connect:', error);
         setConnected(false);
         reconnectTimeout = setTimeout(connect, 1000);
       }
@@ -80,7 +89,7 @@ export default function App() {
       <View style={styles.statusBar}>
         <Text style={[styles.dot, connected && styles.dotConnected]}>●</Text>
         <Text style={styles.statusText}>
-          {connected ? 'Connected to debugger' : 'Reconnecting...'}
+          {connected ? 'Connected to debugger' : 'Waiting for debugger...'}
         </Text>
       </View>
       <ScrollView 

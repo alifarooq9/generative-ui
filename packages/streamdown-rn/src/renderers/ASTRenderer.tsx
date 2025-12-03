@@ -337,6 +337,8 @@ function renderCodeBlock(
             web: 'monospace',
             default: 'monospace',
           })}
+          PreTag={View}
+          CodeTag={Text}
         >
           {code}
         </SyntaxHighlighter>

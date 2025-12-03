@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "main": "./src/index.js",
   "scripts": {
-    "start": "bunx expo start",
-    "android": "bunx expo run:android",
-    "ios": "bunx expo run:ios",
-    "web": "bunx expo start --web",
+    "start": "bunx expo start --port 8082 --host 0.0.0.0",
+    "android": "bunx expo run:android --port 8082",
+    "ios": "REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0 bunx expo run:ios --port 8082",
+    "web": "bunx expo start --web --port 8082",
     "lint": "eslint .",
     "setup": "node setup.js"
   },

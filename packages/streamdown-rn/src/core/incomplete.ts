@@ -460,6 +460,11 @@ function closeTag(
       return fixed + '**';
       
     case 'italic':
+      const hasContent = fixed.length > tag.position + 1;
+      if (!hasContent) {
+        // No content - use zero-width space to break ** pattern for clean hiding
+        return fixed + '\u200B*';
+      }
       return fixed + '*';
       
     case 'code':

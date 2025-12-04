@@ -178,4 +178,3 @@ export const StreamdownRN: React.FC<StreamdownRNProps> = React.memo(({
 StreamdownRN.displayName = 'StreamdownRN';
 
 export default StreamdownRN;
-

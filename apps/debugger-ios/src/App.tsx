@@ -1,35 +1,25 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Pressable } from 'react-native';
 import { StyleSheet, UnistylesRuntime } from 'react-native-unistyles';
 import { StreamdownRN } from 'streamdown-rn';
 import { debugComponentRegistry } from '@darkresearch/debug-components';
+import { ChatHistoryTest } from './screens/ChatHistoryTest';
 
 const WS_URL = 'ws://localhost:3001';
 
-// Configure Unistyles
-StyleSheet.configure({
-  themes: {
-    dark: {
-      colors: {
-        bg: '#1a1a1a',
-        statusBg: '#141414',
-        border: '#333',
-        text: '#888',
-        placeholder: '#666',
-        connected: '#4ade80',
-      },
-    },
-  },
-  settings: {
-    initialTheme: 'dark',
-  },
-});
+type AppMode = 'debugger' | 'chat-history';
+
+// Note: Unistyles is configured in unistyles.config.ts (imported by index.js)
 
 export default function App() {
+  const [mode, setMode] = useState<AppMode>('debugger');
   const [content, setContent] = useState('');
   const [connected, setConnected] = useState(false);
   
   useEffect(() => {
+    // Only connect to WebSocket in debugger mode
+    if (mode !== 'debugger') return;
+    
     let ws: WebSocket | null = null;
     let reconnectTimeout: NodeJS.Timeout | null = null;
     let hasConnectedOnce = false;
@@ -83,8 +73,14 @@ export default function App() {
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
       ws?.close();
     };
-  }, []);
+  }, [mode]);
 
+  // Chat History Test Mode
+  if (mode === 'chat-history') {
+    return <ChatHistoryTest onBack={() => setMode('debugger')} />;
+  }
+
+  // Default: Debugger Mode
   return (
     <View style={styles.container}>
       <View style={styles.statusBar}>
@@ -92,6 +88,12 @@ export default function App() {
         <Text style={styles.statusText}>
           {connected ? 'Connected to debugger' : 'Waiting for debugger...'}
         </Text>
+        <Pressable 
+          onPress={() => setMode('chat-history')}
+          style={styles.modeButton}
+        >
+          <Text style={styles.modeButtonText}>💬 Chat Test</Text>
+        </Pressable>
       </View>
       <ScrollView 
         style={styles.content} 
@@ -102,9 +104,14 @@ export default function App() {
             {content}
           </StreamdownRN>
         ) : (
-          <Text style={styles.placeholder}>
-            Waiting for content from web debugger...
-          </Text>
+          <View style={styles.placeholderContainer}>
+            <Text style={styles.placeholder}>
+              Waiting for content from web debugger...
+            </Text>
+            <Text style={styles.hint}>
+              Or tap "💬 Chat Test" above to test chat history rendering
+            </Text>
+          </View>
         )}
       </ScrollView>
     </View>
@@ -135,8 +142,20 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.connected,
   },
   statusText: {
+    flex: 1,
     color: theme.colors.text,
     fontSize: 14,
+  },
+  modeButton: {
+    backgroundColor: '#2a2a2a',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  modeButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
   },
   content: {
     flex: 1,
@@ -144,10 +163,19 @@ const styles = StyleSheet.create((theme) => ({
   contentContainer: {
     padding: 16,
   },
+  placeholderContainer: {
+    alignItems: 'center',
+    marginTop: 40,
+    gap: 12,
+  },
   placeholder: {
     color: theme.colors.placeholder,
     fontSize: 16,
     textAlign: 'center',
-    marginTop: 40,
+  },
+  hint: {
+    color: theme.colors.text,
+    fontSize: 14,
+    textAlign: 'center',
   },
 }));

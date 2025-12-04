@@ -1,3 +1,4 @@
+import './unistyles.config'; // Must be first - configures Unistyles before any StyleSheet.create()
 import { registerRootComponent } from 'expo';
 import App from './App';
 

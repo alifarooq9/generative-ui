@@ -6,13 +6,14 @@
     "start": "bunx expo start --port 8082 --host lan",
     "ios": "RCT_METRO_PORT=8082 bunx expo run:ios",
     "web": "bunx expo start --web --port 8082",
-    "dev": "RCT_METRO_PORT=8082 bunx concurrently --kill-others \"bun run start\" \"sleep 5 && echo '🔧 Metro port: 8082 (RCT_METRO_PORT)' && bun run ios\"",
+    "dev": "RCT_METRO_PORT=8082 bunx concurrently \"bun run start\" \"sleep 5 && echo '🔧 Metro port: 8082 (RCT_METRO_PORT)' && bun run ios\"",
     "lint": "eslint .",
     "setup": "node setup.js"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.4",
     "@darkresearch/debug-components": "workspace:*",
+    "@legendapp/list": "^2.0.16",
     "streamdown-rn": "workspace:*",
     "@expo-google-fonts/geist": "^0.4.1",
     "@expo/metro-runtime": "~6.1.2",

@@ -13,7 +13,7 @@
     },
     "apps/debugger": {
       "name": "@darkresearch/debugger",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@babel/runtime": "^7.28.4",
         "@darkresearch/debug-components": "workspace:*",
@@ -48,12 +48,13 @@
     },
     "apps/debugger-ios": {
       "name": "@darkresearch/debugger-ios",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@babel/runtime": "^7.28.4",
         "@darkresearch/debug-components": "workspace:*",
         "@expo-google-fonts/geist": "^0.4.1",
         "@expo/metro-runtime": "~6.1.2",
+        "@legendapp/list": "^2.0.16",
         "@react-native-vector-icons/lucide": "^12.4.0",
         "@react-native/assets-registry": "^0.81.5",
         "expo": "~54.0.25",
@@ -83,7 +84,7 @@
     },
     "apps/starter": {
       "name": "@darkresearch/starter",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@babel/runtime": "^7.28.4",
         "@expo-google-fonts/geist": "^0.4.1",
@@ -115,7 +116,7 @@
     },
     "packages/debug-components": {
       "name": "@darkresearch/debug-components",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "devDependencies": {
         "@types/react": "^19.0.0",
         "typescript": "~5.9.3",
@@ -128,7 +129,7 @@
     },
     "packages/galerie-rn": {
       "name": "galerie-rn",
-      "version": "0.0.2",
+      "version": "0.2.0",
       "devDependencies": {
         "@types/react": "~19.0.0",
         "@types/react-native": "^0.73.0",
@@ -143,7 +144,7 @@
     },
     "packages/streamdown-rn": {
       "name": "streamdown-rn",
-      "version": "0.1.6",
+      "version": "0.2.0",
       "dependencies": {
         "prismjs": "^1.29.0",
         "react-native-syntax-highlighter": "^2.1.0",
@@ -576,6 +577,8 @@
     "@jridgewell/sourcemap-codec": ["@jridgewell/sourcemap-codec@1.5.5", "", {}, "sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og=="],
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
+
+    "@legendapp/list": ["@legendapp/list@2.0.16", "", { "dependencies": { "use-sync-external-store": "^1.5.0" }, "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-pFdeR0wpxCdpfHoHp5ghWBET/9vDxrG9curw+7xMoC8kHFogpn1TYJFwPV4xXrq9sLLA4MiwBPLQCvjHS5ruag=="],
 
     "@manypkg/find-root": ["@manypkg/find-root@1.1.0", "", { "dependencies": { "@babel/runtime": "^7.5.5", "@types/node": "^12.7.1", "find-up": "^4.1.0", "fs-extra": "^8.1.0" } }, "sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA=="],
 

@@ -49,36 +49,55 @@ export const StreamdownRN: React.FC<StreamdownRNProps> = React.memo(({
 }) => {
   // Persistent registry reference — survives across renders
   const registryRef = useRef<BlockRegistry>(INITIAL_REGISTRY);
-  
+
+  // Track content for change detection (important for FlashList recycling!)
+  const contentRef = useRef<string>('');
+
   // Debug tracking refs
   const lastUpdateTimeRef = useRef<number>(performance.now());
   const previousContentRef = useRef<string>('');
-  
+
   // Resolve theme configuration
   const themeConfig = useMemo<ThemeConfig>(() => {
     return getTheme(theme);
   }, [theme]);
-  
+
   // Process new content incrementally
   // This is the core optimization: only processes NEW tokens
   const registry = useMemo(() => {
     // Handle empty content
     if (!children || children.trim().length === 0) {
       registryRef.current = INITIAL_REGISTRY;
+      contentRef.current = '';
       return INITIAL_REGISTRY;
     }
-    
+
     try {
-      // Process from where we left off
+      // CRITICAL FIX: Detect if content has completely changed (not just appended)
+      // This happens when FlashList recycles a component with new data.
+      // If new content doesn't start with the previous content, we must reset.
+      const previousContent = contentRef.current;
+      const isStreamingContinuation = previousContent.length > 0 &&
+        children.startsWith(previousContent);
+
+      if (!isStreamingContinuation && previousContent.length > 0) {
+        // Content has changed completely - reset registry
+        registryRef.current = INITIAL_REGISTRY;
+      }
+
+      // Update content ref
+      contentRef.current = children;
+
+      // Process from where we left off (or from beginning if reset)
       let updated = processNewContent(registryRef.current, children);
-      
+
       // When streaming is complete, finalize the active block
       // This ensures the last block is properly memoized and components
       // transition from skeleton to final state
       if (isComplete && updated.activeBlock) {
         updated = finalizeActiveBlock(updated);
       }
-      
+
       registryRef.current = updated;
       return updated;
     } catch (error) {

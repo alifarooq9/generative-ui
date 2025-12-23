@@ -610,7 +610,7 @@ function renderImage(
 
   return (
     <View key={key} style={{ marginVertical: theme.spacing.block }}>
-      <AutoSizedImage uri={safeUrl} alt={node.alt} theme={theme} />
+      <AutoSizedImage uri={safeUrl} alt={node.alt ?? undefined} theme={theme} />
     </View>
   );
 }

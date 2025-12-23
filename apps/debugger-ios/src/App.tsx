@@ -3,61 +3,61 @@ import { View, Text, ScrollView, Pressable } from 'react-native';
 import { StyleSheet, UnistylesRuntime } from 'react-native-unistyles';
 import { StreamdownRN } from 'streamdown-rn';
 import { debugComponentRegistry } from '@darkresearch/debug-components';
-import { ChatHistoryTest } from './screens/ChatHistoryTest';
+import { ListPickerScreen, ListType } from './screens/ListPickerScreen';
+import { ChatTestScreen } from './screens/ChatTestScreen';
 
 const WS_URL = 'ws://localhost:3001';
 
-type AppMode = 'debugger' | 'chat-history';
+type AppMode =
+  | { type: 'debugger' }
+  | { type: 'list-picker' }
+  | { type: 'chat-test'; listType: ListType };
 
 // Note: Unistyles is configured in unistyles.config.ts (imported by index.js)
 
 export default function App() {
-  const [mode, setMode] = useState<AppMode>('debugger');
+  const [mode, setMode] = useState<AppMode>({ type: 'debugger' });
   const [content, setContent] = useState('');
   const [connected, setConnected] = useState(false);
-  
+
   useEffect(() => {
     // Only connect to WebSocket in debugger mode
-    if (mode !== 'debugger') return;
-    
+    if (mode.type !== 'debugger') return;
+
     let ws: WebSocket | null = null;
     let reconnectTimeout: NodeJS.Timeout | null = null;
     let hasConnectedOnce = false;
-    
+
     const connect = () => {
       try {
         ws = new WebSocket(WS_URL);
-        
+
         ws.onopen = () => {
           setConnected(true);
           if (!hasConnectedOnce) {
-            console.log('✅ Connected to debugger');
+            console.log('Connected to debugger');
             hasConnectedOnce = true;
           }
         };
-        
+
         ws.onclose = () => {
           setConnected(false);
-          // Only log disconnect once
           if (hasConnectedOnce) {
-            console.log('⚠️  Disconnected from debugger');
+            console.log('Disconnected from debugger');
             hasConnectedOnce = false;
           }
           reconnectTimeout = setTimeout(connect, 1000);
         };
-        
-        // Suppress error logging - onclose already handles disconnections
+
         ws.onerror = () => {
           setConnected(false);
-          // Errors are handled by onclose, no need to log here
         };
-        
+
         ws.onmessage = (e) => {
           try {
             const data = JSON.parse(e.data);
             setContent(data.content || '');
           } catch (error) {
-            // Only log parse errors, not connection errors
             console.error('Failed to parse message:', error);
           }
         };
@@ -66,18 +66,33 @@ export default function App() {
         reconnectTimeout = setTimeout(connect, 1000);
       }
     };
-    
+
     connect();
-    
+
     return () => {
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
       ws?.close();
     };
-  }, [mode]);
+  }, [mode.type]);
 
-  // Chat History Test Mode
-  if (mode === 'chat-history') {
-    return <ChatHistoryTest onBack={() => setMode('debugger')} />;
+  // List Picker Screen
+  if (mode.type === 'list-picker') {
+    return (
+      <ListPickerScreen
+        onSelect={(listType) => setMode({ type: 'chat-test', listType })}
+        onBack={() => setMode({ type: 'debugger' })}
+      />
+    );
+  }
+
+  // Chat Test Screen
+  if (mode.type === 'chat-test') {
+    return (
+      <ChatTestScreen
+        listType={mode.listType}
+        onBack={() => setMode({ type: 'list-picker' })}
+      />
+    );
   }
 
   // Default: Debugger Mode
@@ -88,15 +103,15 @@ export default function App() {
         <Text style={styles.statusText}>
           {connected ? 'Connected to debugger' : 'Waiting for debugger...'}
         </Text>
-        <Pressable 
-          onPress={() => setMode('chat-history')}
+        <Pressable
+          onPress={() => setMode({ type: 'list-picker' })}
           style={styles.modeButton}
         >
-          <Text style={styles.modeButtonText}>💬 Chat Test</Text>
+          <Text style={styles.modeButtonText}>Test Chats</Text>
         </Pressable>
       </View>
-      <ScrollView 
-        style={styles.content} 
+      <ScrollView
+        style={styles.content}
         contentContainerStyle={styles.contentContainer}
       >
         {content ? (
@@ -109,7 +124,7 @@ export default function App() {
               Waiting for content from web debugger...
             </Text>
             <Text style={styles.hint}>
-              Or tap "💬 Chat Test" above to test chat history rendering
+              Or tap "Test Chats" to test list rendering
             </Text>
           </View>
         )}
@@ -147,15 +162,15 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 14,
   },
   modeButton: {
-    backgroundColor: '#2a2a2a',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: '#4ade80',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 16,
   },
   modeButtonText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '500',
+    color: '#000',
+    fontSize: 14,
+    fontWeight: '600',
   },
   content: {
     flex: 1,

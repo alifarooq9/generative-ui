@@ -1,4 +1,4 @@
-# StreamdownRN v0.2.1 Architecture
+# StreamdownRN v0.2.2 Architecture
 
 ## Overview
 
@@ -7,9 +7,10 @@ High-performance streaming markdown renderer for React Native with:
 - **AST-based rendering** — Robust via remark + remark-gfm
 - **Block-level memoization** — Stable blocks never re-render
 - **Inline component support** — `[{c:"Name",p:{...}}]` syntax
-- **Custom renderers** — Override built-in rendering (e.g., code blocks)
+- **Custom renderers** — Override all block-level elements (images, links, headings, tables, blockquotes, code blocks)
 - **Full GFM support** — Tables, strikethrough, task lists, footnotes
 - **Syntax highlighting** — Prism-based, lightweight (~30KB)
+- **FlashList/LegendList support** — `extraData` prop for virtualized list compatibility
 
 ---
 
@@ -48,7 +49,7 @@ Incoming stream: "# Hello\n\nSome **bold** text"
 
 ```
 src/
-├── __tests__/                        # Unit tests (218 tests)
+├── __tests__/                        # Unit tests (271 tests)
 │   ├── splitter.test.ts              # Block boundary detection
 │   ├── incomplete.test.ts            # Tag state tracking
 │   ├── parser.test.ts                # Remark/GFM parsing
@@ -268,7 +269,7 @@ const renderers = {
 
 ```bash
 bun test
-# ✓ 218 tests passing
+# ✓ 271 tests passing
 ```
 
 **Test Coverage:**
@@ -276,7 +277,7 @@ bun test
 - Incomplete handler (tag state tracking, auto-close)
 - Parser (remark/GFM parsing)
 - Component extraction (syntax parsing, streaming)
-- Custom renderers (code block detection, streaming props)
+- Custom renderers (all 6 element types: code blocks, images, links, headings, tables, blockquotes)
 - Security (URL sanitization, XSS prevention)
 
 ---

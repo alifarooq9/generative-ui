@@ -6,7 +6,9 @@
  */
 
 import type { ComponentType, ReactNode } from 'react';
-import type { Content } from 'mdast';
+import type { PluggableList } from 'unified';
+import type { Options as RemarkRehypeOptions } from 'remark-rehype';
+import type { Root as HastRoot, Element as HastElement } from 'hast';
 
 // ============================================================================
 // Block Types
@@ -61,8 +63,8 @@ interface BaseBlock {
 export interface StableBlock extends BaseBlock {
   /** Block-specific metadata */
   meta: BlockMeta;
-  /** Parsed MDAST node (cached for performance) */
-  ast?: Content;
+  /** Parsed HAST root (optional cache for performance) */
+  ast?: HastRoot;
 }
 
 /**
@@ -298,6 +300,20 @@ export interface StreamdownRNProps {
   style?: object;
   /** Error callback for component failures */
   onError?: (error: Error, componentName?: string) => void;
+  /** Remark plugins to apply (appended to defaults unless preset = 'none') */
+  remarkPlugins?: PluggableList;
+  /** Rehype plugins to apply (appended to defaults unless preset = 'none') */
+  rehypePlugins?: PluggableList;
+  /** Control whether defaults are included */
+  remarkPluginsPreset?: 'default' | 'none';
+  /** Control whether defaults are included */
+  rehypePluginsPreset?: 'default' | 'none';
+  /** remark-rehype options (advanced) */
+  remarkRehypeOptions?: RemarkRehypeOptions;
+  /** Component overrides for HAST tags */
+  components?: HastComponentMap;
+  /** Optional math renderer for KaTeX/remark-math output */
+  renderMath?: (latex: string, displayMode: boolean) => ReactNode;
   /** 
    * Debug callback — called on every content update.
    * Use for observability, debugging, or testing.
@@ -312,6 +328,20 @@ export interface StreamdownRNProps {
    */
   isComplete?: boolean;
 }
+
+// ============================================================================
+// HAST Renderer Types
+// ============================================================================
+
+export interface HastComponentProps {
+  children?: ReactNode;
+  node?: HastElement;
+  className?: string[];
+  inline?: boolean;
+  [key: string]: unknown;
+}
+
+export type HastComponentMap = Partial<Record<string, ComponentType<HastComponentProps>>>;
 
 /**
  * Props passed to block renderers

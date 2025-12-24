@@ -42,6 +42,8 @@ export {
 export type {
   // Component props
   StreamdownRNProps,
+  HastComponentMap,
+  HastComponentProps,
   
   // Component injection (for custom component registries)
   ComponentDefinition,

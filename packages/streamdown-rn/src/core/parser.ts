@@ -1,14 +1,15 @@
 /**
  * Markdown Parser
  * 
- * Wrapper around remark + remark-gfm for robust markdown parsing.
+ * Wrapper around unified + remark-parse + remark-gfm for robust markdown parsing.
  * Caches the processor instance for performance.
  * 
  * NOTE: We disable setext-style headings (Text\n---) and only support
  * ATX-style headings (# Heading) for predictable streaming behavior.
  */
 
-import { remark } from 'remark';
+import { unified } from 'unified';
+import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
 import type { Root, Content } from 'mdast';
 
@@ -20,7 +21,7 @@ import type { Root, Content } from 'mdast';
  * Remark processor instance (created once, reused)
  * Includes GitHub Flavored Markdown support
  */
-const processor = remark().use(remarkGfm);
+const processor = unified().use(remarkParse).use(remarkGfm);
 
 // ============================================================================
 // Pre-processing: Disable Setext Headings

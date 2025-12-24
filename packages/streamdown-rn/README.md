@@ -10,6 +10,7 @@ High-performance streaming markdown renderer for React Native, optimized for AI 
 - **Block-level memoization** — Stable blocks never re-render
 - **Full GFM support** — Tables, strikethrough, task lists via remark-gfm
 - **Syntax highlighting** — Prism-based code highlighting
+- **Unified plugins** � Remark + rehype plugin support for HAST transforms
 
 ## Installation
 
@@ -133,6 +134,70 @@ import { Skeleton, SkeletonText, SkeletonCircle, SkeletonNumber } from 'streamdo
 </StreamdownRN>
 ```
 
+## Remark + Rehype Plugins
+
+StreamdownRN runs a unified pipeline (remark -> rehype) per block so you can
+apply custom plugins during streaming.
+
+```tsx
+import rehypeHighlight from 'rehype-highlight';
+
+<StreamdownRN
+  rehypePlugins={[rehypeHighlight]}
+>
+  {content}
+</StreamdownRN>
+```
+
+Defaults:
+- `remarkPluginsPreset="default"` includes `remark-gfm`
+- `rehypePluginsPreset="default"` is empty (no HTML parsing by default)
+
+If you want full control (no defaults), set the preset to `"none"`:
+
+```tsx
+<StreamdownRN
+  remarkPluginsPreset="none"
+  rehypePluginsPreset="none"
+  remarkPlugins={[myRemarkPlugin]}
+  rehypePlugins={[myRehypePlugin]}
+>
+  {content}
+</StreamdownRN>
+```
+
+### Custom Element Rendering
+
+Use `components` to override how HAST tags render:
+
+```tsx
+import { View } from 'react-native';
+
+const components = {
+  div: ({ children }) => <View>{children}</View>,
+};
+
+<StreamdownRN components={components}>
+  {content}
+</StreamdownRN>
+```
+
+Note: inline tags should render as `<Text>`-compatible components to avoid
+nesting `<View>` inside `<Text>`.
+
+### KaTeX / Math Notes
+
+`rehype-katex` emits HTML that relies on CSS. React Native cannot render that
+directly. Use `renderMath` to provide a native math renderer:
+
+```tsx
+<StreamdownRN
+  renderMath={(latex, displayMode) => (
+    <MyMathView latex={latex} displayMode={displayMode} />
+  )}
+/>
+```
+
 ## Debugging
 
 Enable debug callbacks to inspect the streaming state:
@@ -161,6 +226,13 @@ Enable debug callbacks to inspect the streaming state:
 | `onDebug` | `(snapshot: DebugSnapshot) => void` | Debug callback |
 | `onError` | `(error: Error) => void` | Error handler |
 | `isComplete` | `boolean` | Set `true` when streaming finishes |
+| `remarkPlugins` | `PluggableList` | Remark plugins (appended to defaults) |
+| `rehypePlugins` | `PluggableList` | Rehype plugins (appended to defaults) |
+| `remarkPluginsPreset` | `'default' \| 'none'` | Include defaults or not |
+| `rehypePluginsPreset` | `'default' \| 'none'` | Include defaults or not |
+| `remarkRehypeOptions` | `RemarkRehypeOptions` | Advanced remark-rehype config |
+| `components` | `HastComponentMap` | Custom tag-to-component overrides |
+| `renderMath` | `(latex: string, displayMode: boolean) => ReactNode` | Math renderer hook |
 
 ## Security
 
@@ -195,7 +267,7 @@ Component props from the `[{c:"Name",p:{...}}]` syntax are sanitized recursively
 
 ### HTML in Markdown
 
-Raw HTML in markdown (e.g., `<script>alert(1)</script>`) is rendered as **plain text**, not executed. We never use `dangerouslySetInnerHTML`.
+Raw HTML in markdown (e.g., `<script>alert(1)</script>`) is rendered as **plain text**, not executed. We never use `dangerouslySetInnerHTML`. `rehype-raw` is not enabled by default.
 
 ### Using Sanitization Utilities
 
@@ -220,4 +292,13 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed implementation notes.
 ## License
 
 Apache-2.0
+
+
+
+
+
+
+
+
+
 

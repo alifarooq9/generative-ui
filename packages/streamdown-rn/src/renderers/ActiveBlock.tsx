@@ -5,14 +5,20 @@
  * 
  * Flow:
  * 1. Fix incomplete markdown tags (auto-close for preview)
- * 2. Parse with remark to get AST
- * 3. Render AST with ASTRenderer
+ * 2. Parse with unified to get HAST
+ * 3. Render HAST with ASTRenderer
  */
 
 import React from 'react';
-import type { ActiveBlock as ActiveBlockType, ThemeConfig, ComponentRegistry, IncompleteTagState } from '../core/types';
+import type {
+  ActiveBlock as ActiveBlockType,
+  ThemeConfig,
+  ComponentRegistry,
+  IncompleteTagState,
+  HastComponentMap,
+} from '../core/types';
 import { fixIncompleteMarkdown } from '../core/incomplete';
-import { parseBlockContent } from '../core/parser';
+import type { MarkdownProcessor } from '../core/processor';
 import { ASTRenderer, ComponentBlock, extractComponentData } from './ASTRenderer';
 
 interface ActiveBlockProps {
@@ -20,6 +26,9 @@ interface ActiveBlockProps {
   tagState: IncompleteTagState;
   theme: ThemeConfig;
   componentRegistry?: ComponentRegistry;
+  processor: MarkdownProcessor;
+  components?: HastComponentMap;
+  renderMath?: (latex: string, displayMode: boolean) => React.ReactNode;
 }
 
 /**
@@ -33,6 +42,9 @@ export const ActiveBlock: React.FC<ActiveBlockProps> = ({
   tagState,
   theme,
   componentRegistry,
+  processor,
+  components,
+  renderMath,
 }) => {
   // No active block — nothing to render
   if (!block || !block.content.trim()) {
@@ -56,23 +68,21 @@ export const ActiveBlock: React.FC<ActiveBlockProps> = ({
   // Fix incomplete markdown for format-as-you-type UX
   const fixedContent = fixIncompleteMarkdown(block.content, tagState);
   
-  // Parse with remark
-  const ast = parseBlockContent(fixedContent);
+  // Parse with unified to HAST
+  const ast = processor.toHast(fixedContent);
   
   // Render from AST
-  if (ast) {
-    return (
-      <ASTRenderer
-        node={ast}
-        theme={theme}
-        componentRegistry={componentRegistry}
-        isStreaming={true}
-      />
-    );
-  }
+  return (
+    <ASTRenderer
+      root={ast}
+      theme={theme}
+      componentRegistry={componentRegistry}
+      components={components}
+      renderMath={renderMath}
+      isStreaming={true}
+    />
+  );
   
-  // Fallback if parsing fails (shouldn't happen)
-  return null;
 };
 
 ActiveBlock.displayName = 'ActiveBlock';

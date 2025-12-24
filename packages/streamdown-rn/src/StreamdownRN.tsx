@@ -25,6 +25,7 @@ import { fixIncompleteMarkdown } from './core/incomplete';
 import { getTheme } from './themes';
 import { StableBlock } from './renderers/StableBlock';
 import { ActiveBlock } from './renderers/ActiveBlock';
+import { createProcessor } from './core/processor';
 
 /**
  * StreamdownRN Component
@@ -41,6 +42,13 @@ import { ActiveBlock } from './renderers/ActiveBlock';
 export const StreamdownRN: React.FC<StreamdownRNProps> = React.memo(({
   children,
   componentRegistry,
+  remarkPlugins,
+  rehypePlugins,
+  remarkPluginsPreset,
+  rehypePluginsPreset,
+  remarkRehypeOptions,
+  components,
+  renderMath,
   theme = 'dark',
   style,
   onError,
@@ -61,6 +69,23 @@ export const StreamdownRN: React.FC<StreamdownRNProps> = React.memo(({
   const themeConfig = useMemo<ThemeConfig>(() => {
     return getTheme(theme);
   }, [theme]);
+
+  // Create unified processor once per plugin configuration
+  const processor = useMemo(() => {
+    return createProcessor({
+      remarkPlugins,
+      rehypePlugins,
+      remarkPluginsPreset,
+      rehypePluginsPreset,
+      remarkRehypeOptions,
+    });
+  }, [
+    remarkPlugins,
+    rehypePlugins,
+    remarkPluginsPreset,
+    rehypePluginsPreset,
+    remarkRehypeOptions,
+  ]);
 
   // Process new content incrementally
   // This is the core optimization: only processes NEW tokens
@@ -172,6 +197,9 @@ export const StreamdownRN: React.FC<StreamdownRNProps> = React.memo(({
           block={block}
           theme={themeConfig}
           componentRegistry={componentRegistry}
+          processor={processor}
+          components={components}
+          renderMath={renderMath}
         />
       ))}
       
@@ -181,6 +209,9 @@ export const StreamdownRN: React.FC<StreamdownRNProps> = React.memo(({
         tagState={registry.activeTagState}
         theme={themeConfig}
         componentRegistry={componentRegistry}
+        processor={processor}
+        components={components}
+        renderMath={renderMath}
       />
     </View>
   );
@@ -190,7 +221,14 @@ export const StreamdownRN: React.FC<StreamdownRNProps> = React.memo(({
   return (
     prev.children === next.children &&
     prev.theme === next.theme &&
-    prev.isComplete === next.isComplete
+    prev.isComplete === next.isComplete &&
+    prev.remarkPlugins === next.remarkPlugins &&
+    prev.rehypePlugins === next.rehypePlugins &&
+    prev.remarkPluginsPreset === next.remarkPluginsPreset &&
+    prev.rehypePluginsPreset === next.rehypePluginsPreset &&
+    prev.remarkRehypeOptions === next.remarkRehypeOptions &&
+    prev.components === next.components &&
+    prev.renderMath === next.renderMath
   );
 });
 

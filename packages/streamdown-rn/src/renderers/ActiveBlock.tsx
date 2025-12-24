@@ -20,6 +20,8 @@ import type {
 import { fixIncompleteMarkdown } from '../core/incomplete';
 import type { MarkdownProcessor } from '../core/processor';
 import { ASTRenderer, ComponentBlock, extractComponentData } from './ASTRenderer';
+import { isComponentClosed } from '../core/splitter/blockClosers';
+import type { ComponentData } from '../core/componentParser';
 
 interface ActiveBlockProps {
   block: ActiveBlockType | null;
@@ -66,7 +68,15 @@ export const ActiveBlock: React.FC<ActiveBlockProps> = ({
   }
   
   // Fix incomplete markdown for format-as-you-type UX
-  const fixedContent = fixIncompleteMarkdown(block.content, tagState);
+  let fixedContent = fixIncompleteMarkdown(block.content, tagState);
+  const trailingComponent = findTrailingIncompleteComponent(block.content, tagState);
+  let inlineComponentMap: Record<string, ComponentData> | undefined;
+
+  if (trailingComponent?.name) {
+    const token = '[[SD_COMPONENT_0]]';
+    fixedContent = insertBeforeTrailingWhitespace(fixedContent, token);
+    inlineComponentMap = { [token]: trailingComponent };
+  }
   
   // Parse with unified to HAST
   const ast = processor.toHast(fixedContent);
@@ -80,9 +90,42 @@ export const ActiveBlock: React.FC<ActiveBlockProps> = ({
       components={components}
       renderMath={renderMath}
       isStreaming={true}
+      inlineComponentMap={inlineComponentMap}
     />
   );
   
 };
 
 ActiveBlock.displayName = 'ActiveBlock';
+
+function findTrailingIncompleteComponent(
+  content: string,
+  tagState: IncompleteTagState
+): ComponentData | null {
+  if (tagState.inCodeBlock || tagState.inInlineCode) {
+    return null;
+  }
+
+  let idx = content.lastIndexOf('[{');
+  while (idx !== -1) {
+    const tail = content.slice(idx);
+    if (isComponentStart(tail) && !isComponentClosed(tail)) {
+      return extractComponentData(tail);
+    }
+    idx = content.lastIndexOf('[{', idx - 1);
+  }
+
+  return null;
+}
+
+function isComponentStart(value: string): boolean {
+  return /^\[\{\s*c\s*:/.test(value);
+}
+
+function insertBeforeTrailingWhitespace(value: string, token: string): string {
+  const match = value.match(/([ \t]+)$/);
+  if (!match) {
+    return value + token;
+  }
+  return value.slice(0, -match[1].length) + token + match[1];
+}

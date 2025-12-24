@@ -4,15 +4,16 @@
 
 High-performance streaming markdown renderer for React Native with:
 - **Format-as-you-type UX** — Formatting appears immediately
-- **AST-based rendering** — Robust via remark + remark-gfm
+- **HAST-based rendering** — Robust via unified remark + rehype pipeline
 - **Block-level memoization** — Stable blocks never re-render
+- **Plugin hooks** - `remarkPlugins` + `rehypePlugins`
 - **Inline component support** — `[{c:"Name",p:{...}}]` syntax
 - **Full GFM support** — Tables, strikethrough, task lists, footnotes
 - **Syntax highlighting** — Prism-based, lightweight (~30KB)
 
 ---
 
-## Architecture: Hybrid Streaming + AST
+## Architecture: Hybrid Streaming + HAST
 
 ```
 Incoming stream: "# Hello\n\nSome **bold** text"
@@ -27,17 +28,16 @@ Incoming stream: "# Hello\n\nSome **bold** text"
 ┌────────────────────────────────────────────────────────────┐
 │  PHASE 2: Active Block (streaming, re-renders)            │
 │  - Fix incomplete markdown (auto-close open tags)          │
-│  - Parse with remark → MDAST                               │
-│  - Render AST → React components                           │
+│  - Parse with unified → HAST                               │
+│  - Render HAST → React components                           │
 └────────────────────────────────────────────────────────────┘
                           ↓
           Block becomes complete (double newline)
                           ↓
 ┌────────────────────────────────────────────────────────────┐
 │  PHASE 3: Stable Block (memoized, never re-renders)       │
-│  - Parse with remark → MDAST (cached in block.ast)         │
 │  - React.memo prevents re-renders                          │
-│  - Render cached AST → React components                    │
+│  - Render HAST → React components                    │
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -51,6 +51,8 @@ src/
 │   ├── splitter.test.ts              # Block boundary detection
 │   ├── incomplete.test.ts            # Tag state tracking
 │   ├── parser.test.ts                # Remark/GFM parsing
+│   ├── processor.test.ts             # Unified processor tests
+│   ├── renderer.test.ts              # HAST renderer tests
 │   ├── component-extraction.test.ts  # Component syntax
 │   └── README.md                     # Test documentation
 │
@@ -67,7 +69,8 @@ src/
 │   │   ├── finalizeBlock.ts          # Block completion
 │   │   ├── processLines.ts           # Line processing
 │   │   └── logger.ts                 # Debug logging
-│   ├── parser.ts                     # Remark wrapper (cached)
+│   ├── parser.ts                     # Remark parsing helpers
+│   ├── processor.ts                  # Unified remark+rehype pipeline
 │   ├── incomplete.ts                 # Tag state + auto-close
 │   ├── componentParser.ts            # Component extraction
 │   └── sanitize.ts                   # URL/prop sanitization (XSS protection)
@@ -75,7 +78,7 @@ src/
 ├── renderers/                        # Rendering layer
 │   ├── ActiveBlock.tsx               # Streaming block renderer
 │   ├── StableBlock.tsx               # Memoized block renderer
-│   └── ASTRenderer.tsx               # MDAST → React components
+│   └── ASTRenderer.tsx               # HAST → React components
 │
 ├── themes/                           # Theming
 │   └── index.ts                      # Dark/light themes
@@ -98,8 +101,8 @@ src/
 
 **How it works:**
 - Tag state tracks open `**`
-- Auto-closes to `**bo**` before remark parsing
-- Remark sees complete syntax → applies formatting
+- Auto-closes to `**bo**` before unified parsing
+- Remark stage sees complete syntax → applies formatting
 - User sees formatted text immediately
 
 ### 2. Block-Level Memoization
@@ -109,18 +112,21 @@ interface StableBlock {
   id: string;
   content: string;
   contentHash: number;
-  ast: Content;  // ← Cached MDAST, never re-parsed
+  ast?: HastRoot;  // Optional cached HAST root
 }
 
 const StableBlock = React.memo(
-  ({ block }) => <ASTRenderer node={block.ast} />,
+  ({ block, processor }) => {
+    const root = block.ast ?? processor.toHast(block.content);
+    return <ASTRenderer root={root} />;
+  },
   (prev, next) => prev.block.contentHash === next.block.contentHash
 );
 ```
 
 Once a block is finalized:
-- Parsed once with remark
-- AST cached in the block
+- Parsed once with unified (per stable block render)
+- Optional HAST caching if provided
 - Never re-renders (contentHash comparison)
 
 ### 3. Inline Component Support
@@ -153,8 +159,8 @@ Via `remark-gfm`:
 | Regex boundary detection | Every token | O(1) |
 | Tag state update | Every token | O(new_chars) ≈ O(1) |
 | Fix incomplete markdown | Every token (active only) | O(n_active) ≈ O(100) |
-| Parse active with remark | Every token (active only) | O(n_active) |
-| Parse stable with remark | Once per block | O(n_block) |
+| Parse active with unified | Every token (active only) | O(n_active) |
+| Parse stable with unified (on render) | Once per block | O(n_block) |
 | Render stable block | Never (memoized) | O(0) |
 
 **For a 10-block, 1000-token response:**
@@ -178,7 +184,8 @@ bun test
 **Test Coverage:**
 - Block splitter (boundary detection, edge cases)
 - Incomplete handler (tag state tracking, auto-close)
-- Parser (remark/GFM parsing)
+- Processor (remark/rehype pipeline)
+- Renderer (HAST to React Native)
 - Component extraction (syntax parsing, streaming)
 - Security (URL sanitization, XSS prevention)
 
@@ -206,9 +213,24 @@ Check out this [{c:"Badge",p:{"label":"New"}}] feature!
 
 | Package | Size | Purpose |
 |---------|------|---------|
-| `remark` | ~50KB | Markdown parser |
+| `unified` | ~10KB | Pipeline engine |
+| `remark-parse` | ~20KB | Markdown parser |
 | `remark-gfm` | ~15KB | GFM extensions |
+| `remark-rehype` | ~10KB | MDAST to HAST |
+| `hast` | ~5KB | HAST types |
 | `prismjs` | ~30KB | Syntax highlighting |
 | `react-native-syntax-highlighter` | ~5KB | RN wrapper for Prism |
 
 **Total bundle impact:** ~100KB (well worth it for robustness)
+
+
+
+
+
+
+
+
+
+
+
+

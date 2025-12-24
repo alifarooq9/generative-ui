@@ -33,12 +33,17 @@ const Platform = {
   },
 };
 
+const Linking = {
+  openURL: (_url: string) => Promise.resolve(),
+};
+
 mock.module('react-native', () => ({
   Text,
   View,
   ScrollView,
   Image,
   Platform,
+  Linking,
 }));
 
 mock.module('react-native-syntax-highlighter', () => ({

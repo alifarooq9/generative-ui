@@ -6,7 +6,7 @@
  */
 
 import React, { ReactNode, useState, useEffect } from 'react';
-import { Text, View, ScrollView, Image, Platform } from 'react-native';
+import { Text, View, ScrollView, Image, Platform, Linking } from 'react-native';
 import SyntaxHighlighter from 'react-native-syntax-highlighter';
 import type {
   Root as HastRoot,
@@ -24,6 +24,7 @@ import type {
 import { getTextStyles, getBlockStyles } from '../themes';
 import { extractComponentData, type ComponentData } from '../core/componentParser';
 import { sanitizeURL, sanitizeProps } from '../core/sanitize';
+import { findComponentCloseIndex } from '../core/splitter/blockClosers';
 
 // ============================================================================
 // Syntax Highlighting Utilities
@@ -91,12 +92,15 @@ export { extractComponentData, type ComponentData };
 // Renderer Types
 // ============================================================================
 
+type InlineComponentMap = Record<string, ComponentData>;
+
 interface RenderContext {
   theme: ThemeConfig;
   componentRegistry?: ComponentRegistry;
   components?: HastComponentMap;
   renderMath?: (latex: string, displayMode: boolean) => ReactNode;
   isStreaming?: boolean;
+  inlineComponentMap?: InlineComponentMap;
 }
 
 interface RenderState {
@@ -141,6 +145,8 @@ export interface ASTRendererProps {
   renderMath?: (latex: string, displayMode: boolean) => ReactNode;
   /** Whether this is streaming (for components) */
   isStreaming?: boolean;
+  /** Inline component placeholders for streaming */
+  inlineComponentMap?: InlineComponentMap;
 }
 
 /**
@@ -153,6 +159,7 @@ export const ASTRenderer: React.FC<ASTRendererProps> = ({
   components,
   renderMath,
   isStreaming = false,
+  inlineComponentMap,
 }) => {
   const ctx: RenderContext = {
     theme,
@@ -160,6 +167,7 @@ export const ASTRenderer: React.FC<ASTRendererProps> = ({
     components,
     renderMath,
     isStreaming,
+    inlineComponentMap,
   };
 
   return <>{renderChildren(root, ctx, { parentIsText: false, inCode: false })}</>;
@@ -201,13 +209,17 @@ function renderNode(
           </Text>
         );
       }
-      if (!state.inCode && node.value.includes('[{c:')) {
+      if (
+        !state.inCode &&
+        shouldRenderInlineComponents(node.value, ctx.inlineComponentMap)
+      ) {
         return renderTextWithComponents(
           node.value,
           ctx.theme,
           ctx.componentRegistry,
           ctx.isStreaming,
-          key
+          key,
+          ctx.inlineComponentMap
         );
       }
       return node.value;
@@ -303,8 +315,16 @@ function renderNode(
           if (!safeUrl) {
             return <Text key={key}>{children}</Text>;
           }
+          const handlePress = () => {
+            void Linking.openURL(safeUrl);
+          };
           return (
-            <Text key={key} style={styles.link} accessibilityRole="link">
+            <Text
+              key={key}
+              style={styles.link}
+              accessibilityRole="link"
+              onPress={handlePress}
+            >
               {children}
             </Text>
           );
@@ -789,48 +809,177 @@ function renderTextWithComponents(
   theme: ThemeConfig,
   componentRegistry?: ComponentRegistry,
   isStreaming = false,
-  key?: string | number
+  key?: string | number,
+  inlineComponentMap?: InlineComponentMap
 ): ReactNode {
-  const componentMatch = text.match(/\[\{c:\s*"([^"]+)"\s*,\s*p:\s*(\{[\s\S]*?\})\s*\}\]/);
-
-  if (!componentMatch) {
+  const match = findNextInlineComponent(text, inlineComponentMap);
+  if (!match) {
     return text;
   }
 
-  const before = text.slice(0, componentMatch.index);
-  const after = text.slice(componentMatch.index! + componentMatch[0].length);
-
-  const { name, props } = extractComponentData(componentMatch[0]);
-
-  if (!componentRegistry) {
-    return (
-      <>
-        {before}
-        <Text style={{ color: theme.colors.muted }}>[{name}]</Text>
-        {after}
-      </>
-    );
-  }
-
-  const componentDef = componentRegistry.get(name);
-  if (!componentDef) {
-    return (
-      <>
-        {before}
-        <Text style={{ color: theme.colors.muted }}>[{name}]</Text>
-        {after}
-      </>
-    );
-  }
-
-  const Component = componentDef.component;
+  const before = text.slice(0, match.index);
+  const after = text.slice(match.end);
+  const rendered = renderInlineComponent(
+    match.data,
+    componentRegistry,
+    isStreaming,
+    key
+  );
+  const fallback = match.data.name ? (
+    <Text style={{ color: theme.colors.muted }}>[{match.data.name}]</Text>
+  ) : null;
 
   return (
     <>
       {before}
-      <Component key={key} {...props} _isInline={true} _isStreaming={isStreaming} />
-      {renderTextWithComponents(after, theme, componentRegistry, isStreaming, `${key}-after`)}
+      {rendered ?? fallback}
+      {renderTextWithComponents(
+        after,
+        theme,
+        componentRegistry,
+        isStreaming,
+        `${key}-after`,
+        inlineComponentMap
+      )}
     </>
+  );
+}
+
+function shouldRenderInlineComponents(
+  text: string,
+  inlineComponentMap?: InlineComponentMap
+): boolean {
+  if (inlineComponentMap) {
+    for (const token of Object.keys(inlineComponentMap)) {
+      if (text.includes(token)) return true;
+    }
+  }
+  return text.includes('[{');
+}
+
+function findNextInlineComponent(
+  text: string,
+  inlineComponentMap?: InlineComponentMap
+): { index: number; end: number; data: ComponentData } | null {
+  const tokenMatch = findNextInlineToken(text, inlineComponentMap);
+  const syntaxMatch = findNextComponentSyntax(text);
+
+  if (!tokenMatch && !syntaxMatch) {
+    return null;
+  }
+
+  if (tokenMatch && (!syntaxMatch || tokenMatch.index <= syntaxMatch.index)) {
+    return {
+      index: tokenMatch.index,
+      end: tokenMatch.index + tokenMatch.token.length,
+      data: tokenMatch.data,
+    };
+  }
+
+  if (!syntaxMatch) {
+    return null;
+  }
+
+  return {
+    index: syntaxMatch.index,
+    end: syntaxMatch.end,
+    data: extractComponentData(syntaxMatch.raw),
+  };
+}
+
+function findNextInlineToken(
+  text: string,
+  inlineComponentMap?: InlineComponentMap
+): { index: number; token: string; data: ComponentData } | null {
+  if (!inlineComponentMap) return null;
+
+  let bestIndex = -1;
+  let bestToken: string | null = null;
+  for (const token of Object.keys(inlineComponentMap)) {
+    const idx = text.indexOf(token);
+    if (idx !== -1 && (bestIndex === -1 || idx < bestIndex)) {
+      bestIndex = idx;
+      bestToken = token;
+    }
+  }
+
+  if (bestToken === null) return null;
+
+  return {
+    index: bestIndex,
+    token: bestToken,
+    data: inlineComponentMap[bestToken],
+  };
+}
+
+function findNextComponentSyntax(
+  text: string
+): { index: number; end: number; raw: string } | null {
+  let idx = text.indexOf('[{');
+  while (idx !== -1) {
+    const tail = text.slice(idx);
+    if (isComponentStart(tail)) {
+      const endOffset = findComponentCloseIndex(tail);
+      if (endOffset > 0) {
+        const end = idx + endOffset;
+        return { index: idx, end, raw: text.slice(idx, end) };
+      }
+    }
+    idx = text.indexOf('[{', idx + 2);
+  }
+  return null;
+}
+
+function isComponentStart(value: string): boolean {
+  return /^\[\{\s*c\s*:/.test(value);
+}
+
+function renderInlineComponent(
+  data: ComponentData,
+  componentRegistry?: ComponentRegistry,
+  isStreaming = false,
+  key?: string | number
+): ReactNode {
+  if (!data.name) {
+    return null;
+  }
+
+  if (!componentRegistry) {
+    return null;
+  }
+
+  const componentDef = componentRegistry.get(data.name);
+  if (!componentDef) {
+    return null;
+  }
+
+  const renderedChildren = data.children?.length
+    ? data.children.map((child, index) =>
+        renderInlineComponent(
+          child,
+          componentRegistry,
+          isStreaming,
+          `${key}-child-${index}`
+        )
+      )
+    : undefined;
+
+  const mergedStyle = mergeComponentStyles(data.props, data.style);
+  const Component =
+    isStreaming && componentDef.skeletonComponent
+      ? componentDef.skeletonComponent
+      : componentDef.component;
+
+  return (
+    <Component
+      key={key}
+      {...data.props}
+      style={mergedStyle}
+      _isInline={true}
+      _isStreaming={isStreaming}
+    >
+      {renderedChildren}
+    </Component>
   );
 }
 
@@ -887,17 +1036,12 @@ export const ComponentBlock: React.FC<ComponentBlockProps> = React.memo(
     let children: ComponentData[] | undefined;
 
     if (block) {
+      const extracted = extractComponentData(block.content);
       const meta = block.meta as { type: 'component'; name: string; props: Record<string, unknown> };
-      if (meta.name) {
-        componentName = meta.name;
-        props = meta.props || {};
-      } else {
-        const extracted = extractComponentData(block.content);
-        componentName = extracted.name;
-        props = extracted.props;
-        style = extracted.style;
-        children = extracted.children;
-      }
+      componentName = extracted.name || meta.name;
+      props = extracted.name ? extracted.props : meta.props || {};
+      style = extracted.style;
+      children = extracted.children;
     } else {
       componentName = directName ?? '';
       props = directProps ?? {};
@@ -933,7 +1077,7 @@ export const ComponentBlock: React.FC<ComponentBlockProps> = React.memo(
       ))
     ) : undefined;
 
-    const mergedStyle = { ...(props.style as object), ...style };
+    const mergedStyle = mergeComponentStyles(props, style);
 
     if (isStreaming && componentDef.skeletonComponent) {
       const SkeletonComponent = componentDef.skeletonComponent;
@@ -1030,6 +1174,26 @@ function getNodeText(node: HastContent): string {
   return '';
 }
 
+function mergeComponentStyles(
+  props: Record<string, unknown>,
+  style?: Record<string, unknown>
+): Record<string, unknown> | undefined {
+  const propStyle = props.style;
+  const safePropStyle =
+    typeof propStyle === 'object' && propStyle !== null && !Array.isArray(propStyle)
+      ? (propStyle as Record<string, unknown>)
+      : undefined;
+
+  if (!safePropStyle && !style) {
+    return undefined;
+  }
+
+  return {
+    ...(safePropStyle ?? {}),
+    ...(style ?? {}),
+  };
+}
+
 function walkHast(node: HastContent, visitor: (node: HastContent) => boolean | void) {
   const shouldContinue = visitor(node);
   if (shouldContinue === false) return;
@@ -1074,7 +1238,8 @@ export function renderHAST(
   componentRegistry?: ComponentRegistry,
   components?: HastComponentMap,
   renderMath?: (latex: string, displayMode: boolean) => ReactNode,
-  isStreaming = false
+  isStreaming = false,
+  inlineComponentMap?: InlineComponentMap
 ): ReactNode {
   const ctx: RenderContext = {
     theme,
@@ -1082,6 +1247,7 @@ export function renderHAST(
     components,
     renderMath,
     isStreaming,
+    inlineComponentMap,
   };
   return renderChildren(root, ctx, { parentIsText: false, inCode: false });
 }

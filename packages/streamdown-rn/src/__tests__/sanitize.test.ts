@@ -135,6 +135,10 @@ describe('Security: URL Sanitization', () => {
       expect(sanitizeURL('not-a-url')).toBeNull();
       expect(sanitizeURL('://missing-protocol.com')).toBeNull();
     });
+
+    it('should block protocol-relative URLs', () => {
+      expect(sanitizeURL('//evil.com/path')).toBeNull();
+    });
   });
 });
 
@@ -223,6 +227,13 @@ describe('Security: Prop Sanitization', () => {
       const props = { tags: ['hello', 'world'] };
       const safe = sanitizeProps(props);
       expect(safe.tags).toEqual(['hello', 'world']);
+    });
+
+    it('should sanitize nested arrays', () => {
+      const props = { matrix: [['javascript:alert(1)'], ['https://safe.com']] };
+      const safe = sanitizeProps(props);
+      expect((safe.matrix as string[][])[0][0]).toBe('');
+      expect((safe.matrix as string[][])[1][0]).toBe('https://safe.com');
     });
   });
 });

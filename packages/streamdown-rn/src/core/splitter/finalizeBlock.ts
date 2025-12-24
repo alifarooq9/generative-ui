@@ -5,6 +5,7 @@ import type {
   StableBlock,
 } from '../types';
 import { generateBlockId, hashContent } from '../types';
+import { extractComponentData } from '../componentParser';
 
 export function finalizeBlock(
   content: string,
@@ -61,19 +62,13 @@ function extractBlockMeta(content: string, type: BlockType): BlockMeta {
       return { type: 'table', headers, rows };
     }
     case 'component': {
-      try {
-        const match = content.match(
-          /\[\{c:\s*"([^"]+)"\s*,\s*p:\s*(\{[\s\S]*\})\s*\}\]/
-        );
-        if (match) {
-          return {
-            type: 'component',
-            name: match[1],
-            props: JSON.parse(match[2]),
-          };
-        }
-      } catch {
-        // ignore parse failures
+      const extracted = extractComponentData(content);
+      if (extracted.name) {
+        return {
+          type: 'component',
+          name: extracted.name,
+          props: extracted.props,
+        };
       }
       const nameMatch = content.match(/\[\{c:\s*"([^"]+)"/);
       return {

@@ -20,11 +20,16 @@ export function isCodeBlockClosed(content: string): boolean {
 }
 
 export function isComponentClosed(content: string): boolean {
-  if (!content.startsWith('[{')) return false;
+  return findComponentCloseIndex(content) === content.length;
+}
+
+export function findComponentCloseIndex(content: string): number {
+  if (!content.startsWith('[{')) return -1;
 
   let braceDepth = 1;
   let bracketDepth = 1;
   let inString = false;
+  let stringChar = '';
   let escape = false;
 
   for (let i = 2; i < content.length; i++) {
@@ -35,22 +40,32 @@ export function isComponentClosed(content: string): boolean {
       continue;
     }
 
-    if (char === '\\') {
-      escape = true;
+    if (inString) {
+      if (char === '\\') {
+        escape = true;
+        continue;
+      }
+      if (char === stringChar) {
+        inString = false;
+        stringChar = '';
+      }
       continue;
     }
 
-    if (char === '"') {
-      inString = !inString;
+    if (char === '"' || char === "'") {
+      inString = true;
+      stringChar = char;
       continue;
     }
-
-    if (inString) continue;
 
     if (char === '{') braceDepth++;
     if (char === '}') braceDepth--;
     if (char === '[') bracketDepth++;
     if (char === ']') bracketDepth--;
+
+    if (braceDepth < 0 || bracketDepth < 0) {
+      return -1;
+    }
 
     if (
       braceDepth === 0 &&
@@ -59,10 +74,10 @@ export function isComponentClosed(content: string): boolean {
       content[i - 1] === '}' &&
       char === ']'
     ) {
-      return true;
+      return i + 1;
     }
   }
 
-  return false;
+  return -1;
 }
 

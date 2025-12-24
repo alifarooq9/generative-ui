@@ -46,26 +46,34 @@ export function sanitizeURL(url: string): string | null {
   if (!url || typeof url !== 'string') {
     return null;
   }
-  
+
   const trimmed = url.trim();
-  
+
   if (trimmed.length === 0) {
     return null;
   }
-  
-  // Allow relative URLs - they're safe
-  if (trimmed.startsWith('/') || trimmed.startsWith('#') || trimmed.startsWith('./') || trimmed.startsWith('../')) {
-    return url;
+
+  if (trimmed.startsWith('#')) {
+    return trimmed;
   }
-  
+
+  if (trimmed.startsWith('./') || trimmed.startsWith('../')) {
+    return trimmed;
+  }
+
+  // Allow relative paths, but block protocol-relative URLs (//example.com)
+  if (trimmed.startsWith('/')) {
+    return trimmed.startsWith('//') ? null : trimmed;
+  }
+
   // Parse and check protocol
   try {
     const parsed = new URL(trimmed);
-    
+
     if (ALLOWED_PROTOCOLS.has(parsed.protocol)) {
-      return url;
+      return trimmed;
     }
-    
+
     // Protocol not in allowlist - block it
     if (process.env.NODE_ENV !== 'production') {
       console.warn(`[streamdown-rn] Blocked URL with disallowed protocol: ${parsed.protocol}`);
@@ -87,8 +95,23 @@ export function sanitizeURL(url: string): string | null {
  * Only strings that look like URLs need sanitization.
  */
 function looksLikeURL(value: string): boolean {
-  // Match strings that start with a protocol-like pattern: word followed by colon
-  return /^[a-z][a-z0-9+.-]*:/i.test(value);
+  // Match protocol-like patterns or protocol-relative URLs
+  return /^[a-z][a-z0-9+.-]*:/i.test(value) || value.startsWith('//');
+}
+
+function sanitizeArray(values: unknown[]): unknown[] {
+  return values.map(item => {
+    if (typeof item === 'string') {
+      return looksLikeURL(item) ? sanitizeURL(item) ?? '' : item;
+    }
+    if (Array.isArray(item)) {
+      return sanitizeArray(item);
+    }
+    if (typeof item === 'object' && item !== null) {
+      return sanitizeProps(item as Record<string, unknown>);
+    }
+    return item;
+  });
 }
 
 /**
@@ -118,15 +141,7 @@ export function sanitizeProps(props: Record<string, unknown>): Record<string, un
       }
     } else if (Array.isArray(value)) {
       // Recursively sanitize arrays
-      result[key] = value.map(item => {
-        if (typeof item === 'object' && item !== null) {
-          return sanitizeProps(item as Record<string, unknown>);
-        }
-        if (typeof item === 'string' && looksLikeURL(item)) {
-          return sanitizeURL(item) ?? '';
-        }
-        return item;
-      });
+      result[key] = sanitizeArray(value);
     } else if (typeof value === 'object' && value !== null) {
       // Recursively sanitize nested objects
       result[key] = sanitizeProps(value as Record<string, unknown>);

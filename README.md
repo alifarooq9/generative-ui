@@ -17,6 +17,7 @@ High-performance streaming markdown renderer with dynamic component injection.
 - Format-as-you-type UX
 - Progressive component streaming with skeletons
 - Full GFM support (tables, strikethrough, task lists)
+- Remark + rehype plugin support
 - Built-in XSS protection
 
 ### [galerie-rn](./packages/galerie-rn) (Experimental)
